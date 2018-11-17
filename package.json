@@ -1,0 +1,30 @@
+{
+  "name": "dynamic-hls-proxy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasonbyrne/dynamic-hls-proxy.git"
+  },
+  "author": "Jason Byrne <jason.byrne@flosports.tv>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jasonbyrne/dynamic-hls-proxy/issues"
+  },
+  "homepage": "https://github.com/jasonbyrne/dynamic-hls-proxy#readme",
+  "dependencies": {
+    "hls-parser": "^0.2.2",
+    "node": "^11.1.0",
+    "request": "^2.88.0",
+    "typescript": "^3.1.6"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.9",
+    "typescript": "^3.1.6"
+  }
+}
