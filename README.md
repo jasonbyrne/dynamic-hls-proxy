@@ -1,5 +1,19 @@
 # dynamic-hls-proxy
 
+Load a master HLS playlist (m3u8) and dynamically filter or re-sort it
+
+## Install and run it
+
+To run it:
+
+```bash
+npm install
+tsc
+node dist/index.js
+```
+
+## Documentation
+
 Example usage:
 
 ```javascript
@@ -16,7 +30,7 @@ Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
 })
 ```
 
-## setFilterType(type: PlaylistTypeFilter)
+### setFilterType(type: PlaylistTypeFilter)
 
 Use this to filter the playlist for what types of content you want it to include.
 
@@ -24,7 +38,7 @@ Use this to filter the playlist for what types of content you want it to include
  - AudioOnly
  - VideoAndAudio
 
-## sortByBandwidth(order?: RenditionSortOrder)
+### sortByBandwidth(order?: RenditionSortOrder)
 
 This sorts the output by bandwidth. The argument is optional. The default will sort best first.
 
@@ -34,7 +48,7 @@ This sorts the output by bandwidth. The argument is optional. The default will s
  - secondFirst = Put the second rendition first and then order highest-to-lowest
  - nonHdFirst = Put the first non-HD (< 720p) rendition first and then order highest-to-lowest
 
-## setLimit(n: number)
+### setLimit(n: number)
 
 This allows you to only return a certain number of renditions on the list.
 
