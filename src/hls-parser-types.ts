@@ -35,7 +35,7 @@ export interface iSegment {
     dateRange: string
 }
 
-export interface iRendition {
+export interface iMediaTrack {
     type: string,
     uri: string,
     groupId: string,
@@ -59,10 +59,10 @@ export interface iVariant {
     resolution: iResolution,
     frameRate: number,
     hdcpLevel: string,
-    audio: iRendition[],
-    video: iRendition[],
-    subtitles: iRendition[],
-    closedCaptions: iRendition[],
+    audio: iMediaTrack[],
+    video: iMediaTrack[],
+    subtitles: iMediaTrack[],
+    closedCaptions: iMediaTrack[],
     currentRenditions: iCurrentRenditions
 }
 
