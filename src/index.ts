@@ -6,8 +6,7 @@ const chunklistUrl: string = 'http://stream-archive-input-test.s3.amazonaws.com/
 Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
     playlist
         .setBaseUrl("https://videos.flosports.net/")
-        .setTypeFilter(PlaylistTypeFilter.VideoOnly)
-        .sortByBandwidth(RenditionSortOrder.worstFirst)
-        .setLimit(1);
+        .setTypeFilter(PlaylistTypeFilter.VideoAndAudio)
+        .sortByBandwidth(RenditionSortOrder.nonHdFirst);
     console.log(playlist.toString());
 })

@@ -54,6 +54,15 @@ export class StreamInfo {
         if (this.variant.codecs) {
             properties.push(['CODECS', '"' + this.variant.codecs + '"']);
         }
+        if (this.variant.averageBandwidth) {
+            properties.push(['AVERAGE-BANDWIDTH', this.variant.averageBandwidth]);
+        }
+        if (this.variant.frameRate) {
+            properties.push(['FRAME-RATE', this.variant.frameRate]);
+        }
+        if (this.variant.hdcpLevel) {
+            properties.push(['HDCP-LEVEL', this.variant.hdcpLevel])
+        }
         if (this.variant.isIFrameOnly) {
             // #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=86000,URI="low/iframe.m3u8",PROGRAM-ID=1,CODECS="c1",RESOLUTION="1x1",VIDEO="1"
             if (this.variant.uri) {
@@ -71,6 +80,9 @@ export class StreamInfo {
             }
             if (this.variant.subtitles.length) {
                 properties.push(['SUBTITLES', '"' + this.variant.subtitles[0].groupId + '"']);
+            }
+            if (this.variant.video.length) {
+                properties.push(['VIDEO', '"' + this.variant.video[0].groupId + '"']);
             }
             out += "#EXT-X-STREAM-INF:" + this.propertiesToCommaSeparated(properties) + "\n";
         }

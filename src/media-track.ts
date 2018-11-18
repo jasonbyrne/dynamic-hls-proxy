@@ -15,6 +15,12 @@ export class MediaTrack {
         return this.rendition.type === 'AUDIO';
     }
 
+    public getUniqueKey(): string {
+        return this.rendition.groupId + ' ' +
+            this.rendition.type + ' ' +
+            this.rendition.name;
+    }
+
     public toString(): string {
         let out: string = '';
         let properties: any[] = [];
@@ -25,7 +31,10 @@ export class MediaTrack {
             properties.push(['NAME', this.rendition.name]);
         }
         if (this.rendition.language) {
-            properties.push(['LANGUAGE', this.rendition.language]);
+            properties.push(['LANGUAGE', '"' + this.rendition.language + '"']);
+        }
+        if (this.rendition.assocLanguage) {
+            properties.push(['ASSOC-LANGUAGE', '"' + this.rendition.assocLanguage + '"'])
         }
         if (typeof this.rendition.isDefault != 'undefined') {
             properties.push(['DEFAULT', this.rendition.isDefault ? 'YES' : 'NO']);
@@ -35,6 +44,15 @@ export class MediaTrack {
         }
         if (typeof this.rendition.autoselect != 'undefined') {
             properties.push(['AUTOSELECT', this.rendition.autoselect ? 'YES' : 'NO']);
+        }
+        if (this.rendition.characteristics) {
+            properties.push(['CHARACTERISTICS', '"' + this.rendition.characteristics + '"']);
+        }
+        if (this.rendition.channels) {
+            properties.push(['CHANNELS', '"' + this.rendition.channels + '"']);
+        }
+        if (this.rendition.instreamId) {
+            properties.push(['INSTREAM-ID', '"' + this.rendition.instreamId + '"']);
         }
         if (this.rendition.uri) {
             properties.push(['URI', this.playlist.getBaseUrl() + this.rendition.uri]);

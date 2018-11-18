@@ -151,16 +151,14 @@ export class Playlist {
             // #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio1",NAME="eng",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="eng",URI="audio_128_eng_rendition.m3u8"
             variant.audio.concat(variant.closedCaptions).concat(variant.subtitles)
                 .forEach(function (data: iMediaTrack) {
+                    let mediaTrack = new MediaTrack(playlist, data);
                     // If we haven't included this group id yet
-                    if (mediaTracksAlreadyPrinted.indexOf(data.groupId) < 0) {
-                        mediaTracksAlreadyPrinted.push(data.groupId);
-                        let mediaTrack = new MediaTrack(playlist, data);
-                        if (
-                            !mediaTrack.isAudio ||
-                            playlist.includeAudio()
-                        ) {
-                            meta += mediaTrack.toString();
-                        }
+                    if (
+                        mediaTracksAlreadyPrinted.indexOf(mediaTrack.getUniqueKey()) < 0 &&
+                        ( !mediaTrack.isAudio || playlist.includeAudio() )
+                    ) {
+                        mediaTracksAlreadyPrinted.push(mediaTrack.getUniqueKey());
+                        meta += mediaTrack.toString();
                     }
                 });
         });
