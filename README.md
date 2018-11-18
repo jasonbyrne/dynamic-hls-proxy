@@ -4,17 +4,15 @@ Load a master HLS playlist (m3u8) and dynamically filter or re-sort it
 
 ## Install and run it
 
-To run it:
+To run a simple demo, clone the repository and then:
 
 ```bash
 npm install
-tsc
-node dist/index.js
+npm run build
+npm run demo
 ```
 
-## Documentation
-
-Example usage:
+## Example Usage
 
 ```javascript
 import { Playlist, PlaylistTypeFilter } from "./playlist";
@@ -29,6 +27,8 @@ Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
     console.log(playlist.toString());
 })
 ```
+
+## Documentation
 
 ### setFilterType(type: PlaylistTypeFilter)
 
