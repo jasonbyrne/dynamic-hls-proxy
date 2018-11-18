@@ -4,7 +4,7 @@ Load a master HLS playlist (m3u8) and dynamically filter or re-sort it
 
 ## Install and run it
 
-To run a simple demo, clone the repository and then:
+To manually run a simple demo, clone the repository and then:
 
 ```bash
 npm install
@@ -12,23 +12,40 @@ npm run build
 npm run demo
 ```
 
+To include this in your existing project, install the npm module:
+
+```bash
+npm i dynamic-hls-proxy
+```
+
 ## Example Usage
 
+Once you have installed the npm module, here is how to get going:
+
 ```javascript
-import { Playlist, PlaylistTypeFilter } from "./playlist";
+const { Playlist, PlaylistTypeFilter, RenditionSortOrder } = require('dynamic-hls-proxy');
 
-const playlistUrl: string = 'http://stream-archive-input-test.s3.amazonaws.com/output/14ajhmZDE6Wi9ct9_qHDCWeukB15ssKO/playlist.m3u8';
+const playlistUrl = 'http://stream-archive-input-test.s3.amazonaws.com/output/14ajhmZDE6Wi9ct9_qHDCWeukB15ssKO/playlist.m3u8';
 
-Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
+Playlist.loadFromUrl(playlistUrl).then(function (playlist) {
     playlist
         .setTypeFilter(PlaylistTypeFilter.VideoOnly)
         .sortByBandwidth(RenditionSortOrder.worstFirst)
         .setLimit(1);
     console.log(playlist.toString());
-})
+});
+
 ```
 
 ## Documentation
+
+### Playlist.loadFromString(m3u8: string)
+
+This static constructor method will return a Playlist instance. Pass in a string of a master m3u8 playlist.
+
+### Playlist.loadFromUrl(url: string)
+
+This static constructor method will return a Playlist instance. Pass in a string of the url master m3u8 playlist. It will be called via a GET request and the response body loaded in as a string.
 
 ### setFilterType(type: PlaylistTypeFilter)
 
