@@ -18,12 +18,27 @@ export class MediaTrack {
     public toString(): string {
         let out: string = '';
         let properties: any[] = [];
-        this.rendition.groupId && properties.push(['GROUP-ID', this.rendition.groupId]);
-        this.rendition.name && properties.push(['NAME', this.rendition.name]);
-        this.rendition.language && properties.push(['LANGUAGE', this.rendition.language]);
-        this.rendition.isDefault && properties.push(['DEFAULT', this.rendition.isDefault ? 'YES' : 'NO']);
-        this.rendition.autoselect && properties.push(['AUTOSELECT', this.rendition.autoselect ? 'YES' : 'NO']);
-        this.rendition.uri && properties.push(['URI', this.rendition.uri]);
+        if (this.rendition.groupId) {
+            properties.push(['GROUP-ID', this.rendition.groupId]);
+        }
+        if (this.rendition.name) {
+            properties.push(['NAME', this.rendition.name]);
+        }
+        if (this.rendition.language) {
+            properties.push(['LANGUAGE', this.rendition.language]);
+        }
+        if (typeof this.rendition.isDefault != 'undefined') {
+            properties.push(['DEFAULT', this.rendition.isDefault ? 'YES' : 'NO']);
+        }
+        if (typeof this.rendition.forced != 'undefined') {
+            properties.push(['FORCED', this.rendition.forced ? 'YES' : 'NO']);
+        }
+        if (typeof this.rendition.autoselect != 'undefined') {
+            properties.push(['AUTOSELECT', this.rendition.autoselect ? 'YES' : 'NO']);
+        }
+        if (this.rendition.uri) {
+            properties.push(['URI', this.playlist.getBaseUrl() + this.rendition.uri]);
+        }
         out += "#EXT-X-MEDIA:TYPE=" + this.rendition.type + ",";
         for (let i: number = 0; i < properties.length; i++) {
             if (i > 0) {

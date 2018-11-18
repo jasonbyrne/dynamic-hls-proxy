@@ -1,0 +1,16 @@
+#EXTM3U
+#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="WebVTT",NAME="English",DEFAULT=YES,AUTOSELECT=YES,FORCED=NO,URI="https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_en_sbtl.m3u8?subtitle_file_pattern=identifier_langcode",LANGUAGE="en"
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=633000,RESOLUTION=640x360,CODECS="avc1.66.30, mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_1_av.m3u8?null=0
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=434000,RESOLUTION=400x224,CODECS="avc1.66.30, mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_0_av.m3u8?null=0
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=831000,RESOLUTION=640x360,CODECS="avc1.66.30, mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_2_av.m3u8?null=0
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=1231000,RESOLUTION=640x360,CODECS="avc1.77.30, mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_3_av.m3u8?null=0
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=2989000,RESOLUTION=1280x720,CODECS="avc1.77.30, mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_4_av.m3u8?null=0
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=5514000,RESOLUTION=1920x1080,CODECS="avc1.640028, mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_5_av.m3u8?null=0
+#EXT-X-STREAM-INF:PROGRAM-ID=1,BANDWIDTH=40000,CODECS="mp4a.40.2",SUBTITLES="WebVTT"
+https://cnnios-f.akamaihd.net/i/cnn/big/politics/2018/11/13/sen-cindy-hyde-smith-public-hanging-comment-criticism-sot-ctn-vpx.cnn_2336550_ios_,440,650,840,1240,3000,5500,.mp4.csmil/index_0_a.m3u8?null=0

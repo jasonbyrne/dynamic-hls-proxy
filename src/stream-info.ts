@@ -1,10 +1,13 @@
 import { iVariant } from "./hls-parser-types";
+import { Playlist } from "./playlist";
 
 export class StreamInfo {
 
     protected variant: iVariant;
+    protected playlist: Playlist;
 
-    constructor(variant: iVariant) {
+    constructor(playlist: Playlist, variant: iVariant) {
+        this.playlist = playlist;
         this.variant = variant;
     }
 
@@ -42,22 +45,33 @@ export class StreamInfo {
     public toString(): string {
         let out: string = '';
         let properties: any[] = [];
+        if (this.variant.bandwidth) {
+            properties.push(['BANDWIDTH', this.variant.bandwidth]);
+        }
+        if (this.variant.resolution) {
+            properties.push(['RESOLUTION', this.variant.resolution.width + 'x' + this.variant.resolution.height]);
+        }
+        if (this.variant.codecs) {
+            properties.push(['CODECS', '"' + this.variant.codecs + '"']);
+        }
         if (this.variant.isIFrameOnly) {
             // #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=86000,URI="low/iframe.m3u8",PROGRAM-ID=1,CODECS="c1",RESOLUTION="1x1",VIDEO="1"
-            this.variant.bandwidth && properties.push(['BANDWIDTH', this.variant.bandwidth]);
-            this.variant.uri && properties.push(['URI', this.variant.uri]);
-            this.variant.resolution && properties.push(['RESOLUTION', this.variant.resolution.width + 'x' + this.variant.resolution.height]);
-            this.variant.codecs && properties.push(['CODECS', '"' + this.variant.codecs + '"']);
+            if (this.variant.uri) {
+                properties.push(['URI', '"' + this.playlist.getBaseUrl() + this.variant.uri + '"']);
+            }
             out += "#EXT-X-I-FRAME-STREAM-INF:" + this.propertiesToCommaSeparated(properties) + "\n";
         }
         else {
             // #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=1170400,CODECS="avc1",RESOLUTION=320x240,AUDIO="audio0",CLOSED-CAPTIONS=NONE,SUBTITLES="subtitles0"
-            this.variant.bandwidth && properties.push(['BANDWIDTH', this.variant.bandwidth]);
-            this.variant.codecs && properties.push(['CODECS', '"' + this.variant.codecs + '"']);
-            this.variant.resolution && properties.push(['RESOLUTION', this.variant.resolution.width + 'x' + this.variant.resolution.height]);
-            this.variant.audio.length && properties.push(['AUDIO', this.variant.audio[0].groupId]);
-            this.variant.closedCaptions.length && properties.push(['CLOSED-CAPTIONS', this.variant.closedCaptions[0].groupId]);
-            this.variant.subtitles.length && properties.push(['SUBTITLES', this.variant.subtitles[0].groupId]);
+            if (this.variant.audio.length) {
+                properties.push(['AUDIO', '"' + this.variant.audio[0].groupId + '"']);
+            }
+            if (this.variant.closedCaptions.length) {
+                properties.push(['CLOSED-CAPTIONS', '"' + this.variant.closedCaptions[0].groupId + '"']);
+            }
+            if (this.variant.subtitles.length) {
+                properties.push(['SUBTITLES', '"' + this.variant.subtitles[0].groupId + '"']);
+            }
             out += "#EXT-X-STREAM-INF:" + this.propertiesToCommaSeparated(properties) + "\n";
         }
         return out;

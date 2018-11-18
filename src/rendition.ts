@@ -16,7 +16,7 @@ export class Rendition {
 
     constructor(playlist: Playlist, variant: iVariant) {
         this.variant = variant;
-        this.streamInfo = new StreamInfo(variant);
+        this.streamInfo = new StreamInfo(playlist, variant);
         this.playlist = playlist;
     }
 
@@ -44,7 +44,7 @@ export class Rendition {
         let out: string = '';
         out += this.streamInfo.toString();
         if (!this.variant.isIFrameOnly) {
-            out += this.variant.uri + "\n";
+            out += this.playlist.getBaseUrl() + this.variant.uri + "\n";
         }
         return out;
     }

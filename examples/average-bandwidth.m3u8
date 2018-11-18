@@ -1,0 +1,3 @@
+#EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=8425414,AVERAGE-BANDWIDTH=4018922,RESOLUTION=1920x1080,CODECS="avc1.66.30, mp4a.40.2"
+https://nbcnewsencoding-vh.akamaihd.net/i/nbcnews/video/2018/11/f_mo_la_trump_chico_181117_682753698.mp4,,.csmil/index_0_av.m3u8?set-akamai-hls-revision=5

@@ -54,3 +54,6 @@ This allows you to only return a certain number of renditions on the list.
 
 For example, if you only wanted to return the lowest bitrate, sort worstFirst and set this to 1.
 
+### setBaseUrl(baseUrl: string)
+
+This will prepend a domain or path prefix to all URIs.

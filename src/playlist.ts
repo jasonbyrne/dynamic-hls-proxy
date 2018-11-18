@@ -25,6 +25,7 @@ export class Playlist {
     protected renditions: Rendition[] = [];
     protected typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
     protected limit: number = -1;
+    protected baseUrl: string = '';
 
     protected constructor(body: string) {
         let m3u8: iGenericPlaylist = HLS.parse(body);
@@ -129,6 +130,15 @@ export class Playlist {
     public setLimit(n: number): Playlist {
         this.limit = n;
         return this;
+    }
+
+    public setBaseUrl(baseUrl: string): Playlist {
+        this.baseUrl = baseUrl;
+        return this;
+    }
+
+    public getBaseUrl(): string {
+        return this.baseUrl;
     }
 
     public toString(): string {
