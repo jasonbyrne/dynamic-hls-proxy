@@ -31,7 +31,7 @@ export class Playlist {
         let m3u8: iGenericPlaylist = HLS.parse(body);
         let playlist: Playlist = this;
         if (!m3u8.isMasterPlaylist) {
-            new Error("This m3u8 is not a master playlist.");
+            throw new Error("This m3u8 is not a master playlist.");
         }
         this.m3u8 = <iMasterPlaylist> m3u8;
         this.m3u8.variants.forEach(function (variant: iVariant, index: number) {

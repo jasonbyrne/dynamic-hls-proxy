@@ -21,17 +21,17 @@ export interface iResolution {
 
 export interface iSegment {
     type: string,
-    url: string,
+    uri: string,
     mimeType: string,
     duration: number,
     title: string,
     byterange: any,
-    discontinuity: string,
+    discontinuity: boolean,
     mediaSequenceNumber: number,
     discontinuitySequence: number,
     key: string,
     map: string,
-    programDateTime: string,
+    programDateTime: Date,
     dateRange: string
 }
 
