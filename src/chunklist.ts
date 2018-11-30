@@ -162,16 +162,16 @@ export class Chunklist {
                 return;
             }
 
+            if (chunkDuration + skippedDuration >= skippedDurationTarget) {
+                skippedDuration = 0;
+                chunkDuration = 0;
+            }
+
             if (chunkDuration < chunkDurationTarget) {
                 chunkDuration += segment.getDuration();
                 segments.push(segment);
             } else if (skippedDuration < skippedDurationTarget) {
                 skippedDuration += segment.getDuration();
-            }
-
-            if (skippedDuration >= skippedDurationTarget) {
-                skippedDuration = 0;
-                chunkDuration = 0;
             }
         });
 
