@@ -22,6 +22,13 @@ export class Segment {
         return this.segment.duration;
     }
 
+    public cloneWithDiscontinuity(discontinuity: boolean): Segment {
+        const segment: iSegment = JSON.parse(JSON.stringify(this.segment));
+        segment.discontinuity = discontinuity;
+
+        return new Segment(this.chunklist, segment);
+    }
+
     public toString(): string {
         let out: string = '';
         out += this.segmentInfo.toString();

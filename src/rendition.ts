@@ -3,7 +3,6 @@ import { Playlist, PlaylistTypeFilter } from "./playlist";
 import { StreamInfo } from "./stream-info";
 
 const querystring = require('querystring');
-const extend = require('util')._extend;
 
 export enum RenditionType {
     "video",
@@ -50,7 +49,7 @@ export class Rendition {
             return out;
         }
         if (this.playlist.hasDynamicChunklists()) {
-            const props = extend({}, this.playlist.getDynamicChunklistProperties());
+            const props = JSON.parse(JSON.stringify(this.playlist.getDynamicChunklistProperties()));
             props.uri = this.variant.uri;
             props.baseUrl = this.playlist.getBaseUrl();
 

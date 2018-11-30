@@ -168,8 +168,12 @@ export class Chunklist {
             }
 
             if (chunkDuration < chunkDurationTarget) {
+                if (totalDuration === 0 && chunkDuration === 0) {
+                    segments.push(segment.cloneWithDiscontinuity(true));
+                } else {
+                    segments.push(segment);
+                }
                 chunkDuration += segment.getDuration();
-                segments.push(segment);
             } else if (skippedDuration < skippedDurationTarget) {
                 skippedDuration += segment.getDuration();
             }
