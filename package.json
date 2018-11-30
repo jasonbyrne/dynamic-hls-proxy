@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "demo": "node dist/demo.js",
+    "chunklist-demo": "node dist/chunklist-demo.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "publish": "./publish.sh"
   },

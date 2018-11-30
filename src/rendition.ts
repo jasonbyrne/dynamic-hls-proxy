@@ -2,6 +2,8 @@ import { iVariant } from "./hls-parser-types";
 import { Playlist, PlaylistTypeFilter } from "./playlist";
 import { StreamInfo } from "./stream-info";
 
+const querystring = require('querystring');
+
 export enum RenditionType {
     "video",
     "audio",
@@ -43,9 +45,19 @@ export class Rendition {
     public toString(): string {
         let out: string = '';
         out += this.streamInfo.toString();
-        if (!this.variant.isIFrameOnly) {
+        if (this.variant.isIFrameOnly) {
+            return out;
+        }
+        if (this.playlist.hasDynamicChunklists()) {
+            const props = JSON.parse(JSON.stringify(this.playlist.getDynamicChunklistProperties()));
+            props.uri = this.variant.uri;
+            props.baseUrl = this.playlist.getBaseUrl();
+
+            out += this.playlist.getDynamicChunklistEndpoint() + '?' + querystring.stringify(props) + "\n";
+        } else {
             out += this.playlist.getBaseUrl() + this.variant.uri + "\n";
         }
+
         return out;
     }
 
