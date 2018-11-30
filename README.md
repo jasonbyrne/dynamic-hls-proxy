@@ -76,6 +76,18 @@ For example, if you only wanted to return the lowest bitrate, sort worstFirst an
 
 This will prepend a domain or path prefix to all URIs.
 
+### useDynamicChunklists(dynamicChunklists: boolean)
+
+This will set whether to use dynamic URIs for renditions, passing along the original rendition URI, the set baseUrl, and any dynamic chunklist properties, as a query string.
+
+### setDynamicChunklistEndpoint(endpoint: string)
+
+This will set the endpoint that will be used for the dynamic chunklists, with any properties being passed to the endpoint via query string. This can be an absolute path, a relative path, or by default, empty, thereby pointing to the same endpoint that the playlist was accessed from.
+
+### setDynamicChunklistProperties(properties: DynamicChunklistProperties)
+
+This will set the properties that the dynamic chunklist should use, such as its prune type and max duration.
+
 ### Chunklist.loadFromString(m3u8: string)
 
 This static constructor method will return a Chunklist instance. Pass in a string of an m3u8 chunklist.

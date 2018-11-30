@@ -1,6 +1,7 @@
 import { iMasterPlaylist, iGenericPlaylist, iVariant, iMediaTrack } from "./hls-parser-types";
 import { Rendition, RenditionType } from "./rendition";
 import { MediaTrack } from "./media-track";
+import { ChunklistPruneType } from "./chunklist";
 
 const request = require('request');
 const HLS = require('hls-parser'); 
@@ -19,6 +20,11 @@ export enum RenditionSortOrder {
     "nonHdFirst"
 }
 
+export interface DynamicChunklistProperties {
+    pruneType: ChunklistPruneType;
+    maxDuration: number;
+}
+
 export class Playlist {
 
     protected m3u8: iMasterPlaylist;
@@ -26,6 +32,12 @@ export class Playlist {
     protected typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
     protected limit: number = -1;
     protected baseUrl: string = '';
+    protected dynamicChunklists: boolean = false;
+    protected dynamicChunklistEndpoint: string = '';
+    protected dynamicChunklistProperties: DynamicChunklistProperties = {
+        pruneType: ChunklistPruneType.noPrune,
+        maxDuration: -1,
+    };
 
     protected constructor(body: string) {
         let m3u8: iGenericPlaylist = HLS.parse(body);
@@ -139,6 +151,33 @@ export class Playlist {
 
     public getBaseUrl(): string {
         return this.baseUrl;
+    }
+
+    public useDynamicChunklists(dynamicChunklists: boolean): Playlist {
+        this.dynamicChunklists = dynamicChunklists;
+        return this;
+    }
+
+    public hasDynamicChunklists(): boolean {
+        return this.dynamicChunklists;
+    }
+
+    public setDynamicChunklistProperties(properties: DynamicChunklistProperties): Playlist {
+        this.dynamicChunklistProperties = properties;
+        return this;
+    }
+
+    public getDynamicChunklistProperties(): DynamicChunklistProperties {
+        return this.dynamicChunklistProperties;
+    }
+
+    public setDynamicChunklistEndpoint(endpoint: string): Playlist {
+        this.dynamicChunklistEndpoint = endpoint;
+        return this;
+    }
+
+    public getDynamicChunklistEndpoint(): string {
+        return this.dynamicChunklistEndpoint;
     }
 
     public toString(): string {
