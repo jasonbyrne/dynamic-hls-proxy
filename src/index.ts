@@ -1,10 +1,11 @@
 import { Playlist, PlaylistTypeFilter, RenditionSortOrder } from './playlist';
-import { Chunklist } from './chunklist';
+import { Chunklist, ChunklistPruneType } from './chunklist';
 
 
 export {
     Playlist,
     PlaylistTypeFilter,
     RenditionSortOrder,
-    Chunklist
+    Chunklist,
+    ChunklistPruneType
 };
