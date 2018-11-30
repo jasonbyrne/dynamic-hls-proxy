@@ -150,7 +150,7 @@ export class Chunklist {
 
     protected getPreviewSegments(): Segment[] {
         const maxDuration = this.maxDuration;
-        const chunkDurationTarget: number = Math.ceil(this.maxDuration / 3);
+        const chunkDurationTarget: number = Math.floor(this.maxDuration / 3);
         const skippedDurationTarget: number = Math.floor(this.totalDuration / 3);
 
         let segments: Segment[] = [];
@@ -158,23 +158,24 @@ export class Chunklist {
         let chunkDuration: number = 0;
         let skippedDuration: number = 0;
         this.segments.forEach(function(segment: Segment) {
-            if (totalDuration >= maxDuration) {
+            if (Math.ceil(totalDuration) >= maxDuration) {
                 return;
             }
 
-            if (chunkDuration + skippedDuration >= skippedDurationTarget) {
+            if (Math.ceil(chunkDuration + skippedDuration) >= skippedDurationTarget) {
                 skippedDuration = 0;
                 chunkDuration = 0;
             }
 
-            if (chunkDuration < chunkDurationTarget) {
+            if (Math.ceil(chunkDuration) < chunkDurationTarget) {
                 if (totalDuration === 0 && chunkDuration === 0) {
                     segments.push(segment.cloneWithDiscontinuity(true));
                 } else {
                     segments.push(segment);
                 }
                 chunkDuration += segment.getDuration();
-            } else if (skippedDuration < skippedDurationTarget) {
+                totalDuration += segment.getDuration();
+            } else if (Math.ceil(skippedDuration) < skippedDurationTarget) {
                 skippedDuration += segment.getDuration();
             }
         });
