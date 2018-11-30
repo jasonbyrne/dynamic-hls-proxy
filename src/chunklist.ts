@@ -168,7 +168,7 @@ export class Chunklist {
             }
 
             if (Math.ceil(chunkDuration) < chunkDurationTarget) {
-                if (totalDuration === 0 && chunkDuration === 0) {
+                if (totalDuration > 0 && chunkDuration === 0) {
                     segments.push(segment.cloneWithDiscontinuity(true));
                 } else {
                     segments.push(segment);
