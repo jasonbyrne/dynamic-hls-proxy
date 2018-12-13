@@ -1,6 +1,6 @@
 {
   "name": "dynamic-hls-proxy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Load a master HLS playlist (m3u8) and dynamically filter or re-sort it.",
   "main": "index.js",
   "scripts": {
@@ -23,7 +23,8 @@
   ],
   "author": "Jason Byrne <jason.byrne@flosports.tv>",
   "contributors": [
-    "Jason Byrne <jason.byrne@flosports.tv>"
+    "Jason Byrne <jason.byrne@flosports.tv>",
+    "Nicholas Schirmer <nicholas.schirmer@flosports.tv>"
   ],
   "license": "MIT",
   "bugs": {
