@@ -1,14 +1,17 @@
 {
   "name": "dynamic-hls-proxy",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "description": "Load a master HLS playlist (m3u8) and dynamically filter or re-sort it.",
-  "main": "index.js",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "main": "./dist/index.js",
   "scripts": {
     "build": "tsc",
     "demo": "node dist/demo.js",
     "chunklist-demo": "node dist/chunklist-demo.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "publish": "./publish.sh"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
