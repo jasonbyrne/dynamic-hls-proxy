@@ -183,7 +183,9 @@ export class Playlist {
     public toString(): string {
         let playlist: Playlist = this;
         let meta: string = "#EXTM3U\n";
-        meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+        if (this.m3u8.version) {
+            meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+        }
         // Loop through the variants and write out the unique media tracks
         let mediaTracksAlreadyPrinted: string[] = [];
         this.m3u8.variants.forEach(function (variant: iVariant) {

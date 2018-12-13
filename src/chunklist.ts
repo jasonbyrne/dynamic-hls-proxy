@@ -85,7 +85,9 @@ export class Chunklist {
     public toString(): string {
         let chunklist: Chunklist = this;
         let meta: string = "#EXTM3U\n";
-        meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+        if (this.m3u8.version) {
+            meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+        }
 
         let firstMediaSequenceNumber: number = -1;
         let highestDuration = 0;
