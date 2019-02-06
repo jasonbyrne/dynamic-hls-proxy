@@ -59,7 +59,15 @@ export class MediaTrack {
             properties.push(['INSTREAM-ID', '"' + this.rendition.instreamId + '"']);
         }
         if (this.rendition.uri) {
-            properties.push(['URI', this.playlist.getBaseUrl() + this.rendition.uri]);
+            properties.push(
+                [
+                    'URI',
+                    Playlist.buildUrl(
+                        this.playlist.getBaseUrl() + this.rendition.uri,
+                        this.playlist.getQueryStringParams()
+                    )
+                ]
+            );
         }
         out += "#EXT-X-MEDIA:TYPE=" + this.rendition.type + ",";
         for (let i: number = 0; i < properties.length; i++) {

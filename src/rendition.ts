@@ -1,9 +1,8 @@
 import { iVariant } from "./hls-parser-types";
-import { Playlist, PlaylistTypeFilter } from "./playlist";
+import { Playlist } from "./playlist";
 import { StreamInfo } from "./stream-info";
 import { MediaTrack } from './media-track';
-
-const querystring = require('querystring');
+import * as querystring from 'querystring';
 
 export enum RenditionType {
     "video",
@@ -91,8 +90,12 @@ export class Rendition {
             props.baseUrl = this.playlist.getBaseUrl();
 
             out += this.playlist.getDynamicChunklistEndpoint() + '?' + querystring.stringify(props) + "\n";
-        } else {
-            out += this.playlist.getBaseUrl() + this.variant.uri + "\n";
+        }
+        else {
+            out += Playlist.buildUrl(
+                this.playlist.getBaseUrl() + this.variant.uri,
+                this.playlist.getQueryStringParams()
+            ) + "\n";
         }
 
         return out;

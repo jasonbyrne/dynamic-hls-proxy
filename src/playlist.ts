@@ -1,7 +1,8 @@
-import { iMasterPlaylist, iGenericPlaylist, iVariant, iMediaTrack } from "./hls-parser-types";
+import { iMasterPlaylist, iGenericPlaylist, iVariant } from "./hls-parser-types";
 import { Rendition, RenditionType } from "./rendition";
 import { MediaTrack } from "./media-track";
 import { ChunklistPruneType } from "./chunklist";
+import { parse, UrlWithStringQuery } from "url"
 
 const request = require('request');
 const HLS = require('hls-parser'); 
@@ -37,6 +38,7 @@ export class Playlist {
     protected bandwidthRange: [number, number] = [0, 99999999];
     protected resolutionRange: [number, number] = [0, 4320];
     protected baseUrl: string = '';
+    protected queryString: { [key: string]: string } = {};
     protected dynamicChunklists: boolean = false;
     protected dynamicChunklistEndpoint: string = '';
     protected dynamicChunklistProperties: DynamicChunklistProperties = {
@@ -160,6 +162,24 @@ export class Playlist {
         return this;
     }
 
+    public setQueryStringParam(key: string, value: string): Playlist {
+        this.queryString[key] = value;
+        return this;
+    }
+
+    public deleteQueryStringParam(key: string): Playlist {
+        delete this.queryString[key];
+        return this;
+    }
+
+    public hasQueryStringParams(): boolean {
+        return Object.keys(this.queryString).length > 0;
+    }
+
+    public getQueryStringParams(): { [key: string]: string } {
+        return this.queryString;
+    }
+
     public getTypeFilter(): PlaylistTypeFilter {
         return this.typeFilter;
     }
@@ -257,6 +277,19 @@ export class Playlist {
             (this.includeVideo() ? iframeRenditions.join("\n") + "\n" : "") +
             (this.includeVideo() ? videoRenditions.join("\n") + "\n" : "") +
             (this.includeAudio() ? audioRenditions.join("\n") : "");
+    }
+
+    static buildUrl(inputUrl: string, qsParams: { [key: string]: string }): string {
+        const url: UrlWithStringQuery = parse(inputUrl, false);
+        const qs: URLSearchParams = new URLSearchParams(url.search);
+        for (let key in qsParams) {
+            qs.set(key, qsParams[key]);
+        }
+        return (url.protocol !== null ? url.protocol + '//' : '') +
+            (url.host !== null ? url.host : '') +
+            (url.pathname !== null ? url.pathname : '') +
+            ((url.search || Object.keys(qsParams).length > 0) ? '?' + qs.toString() : '') +
+            "\n";
     }
 
 }

@@ -20,6 +20,8 @@ Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
 
 Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
     playlist
+        .setBaseUrl('https://videos.flosports.tv/')
+        .setQueryStringParam('signature', '1234567')
         .setTypeFilter(PlaylistTypeFilter.VideoAndAudio)
         .sortByBandwidth(RenditionSortOrder.worstFirst);
     console.log(playlist.toString());

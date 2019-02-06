@@ -88,6 +88,14 @@ For example, if you only wanted to return the lowest bitrate, sort worstFirst an
 
 This will prepend a domain or path prefix to all URIs.
 
+### setQueryStringParam(key: string, value: string)
+
+Append a query string parameter to all URIs.
+
+### deleteQueryStringParam(key: string)
+
+Remove this query string parameter to all URIs.
+
 ### useDynamicChunklists(dynamicChunklists: boolean)
 
 This will set whether to use dynamic URIs for renditions, passing along the original rendition URI, the set baseUrl, and any dynamic chunklist properties, as a query string.
