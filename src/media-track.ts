@@ -11,6 +11,10 @@ export class MediaTrack {
         this.playlist = playlist;
     }
 
+    public getType(): string {
+        return this.rendition.type;
+    }
+
     public isAudio(): boolean {
         return this.rendition.type === 'AUDIO';
     }

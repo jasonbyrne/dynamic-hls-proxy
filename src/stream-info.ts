@@ -1,5 +1,6 @@
-import { iVariant } from "./hls-parser-types";
+import { iVariant, iMediaTrack } from "./hls-parser-types";
 import { Playlist } from "./playlist";
+import { MediaTrack } from './media-track';
 
 export class StreamInfo {
 
@@ -9,6 +10,15 @@ export class StreamInfo {
     constructor(playlist: Playlist, variant: iVariant) {
         this.playlist = playlist;
         this.variant = variant;
+    }
+
+    public getTracks(): MediaTrack[] {
+        const me: StreamInfo = this;
+        let out: MediaTrack[] = [];
+        this.variant.audio.forEach((track: iMediaTrack) => {
+            out.push(new MediaTrack(me.playlist, track));
+        })
+        return out;
     }
 
     public isIframeOnly(): boolean {
@@ -63,7 +73,7 @@ export class StreamInfo {
         if (this.variant.hdcpLevel) {
             properties.push(['HDCP-LEVEL', this.variant.hdcpLevel])
         }
-        if (this.variant.isIFrameOnly) {
+        if (this.variant.isIFrameOnly && this.playlist.includeVideo()) {
             // #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=86000,URI="low/iframe.m3u8",PROGRAM-ID=1,CODECS="c1",RESOLUTION="1x1",VIDEO="1"
             if (this.variant.uri) {
                 properties.push(['URI', '"' + this.playlist.getBaseUrl() + this.variant.uri + '"']);
@@ -72,7 +82,7 @@ export class StreamInfo {
         }
         else {
             // #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=1170400,CODECS="avc1",RESOLUTION=320x240,AUDIO="audio0",CLOSED-CAPTIONS=NONE,SUBTITLES="subtitles0"
-            if (this.variant.audio.length) {
+            if (this.variant.audio.length && this.playlist.includeAudio()) {
                 properties.push(['AUDIO', '"' + this.variant.audio[0].groupId + '"']);
             }
             if (this.variant.closedCaptions.length) {
@@ -81,7 +91,7 @@ export class StreamInfo {
             if (this.variant.subtitles.length) {
                 properties.push(['SUBTITLES', '"' + this.variant.subtitles[0].groupId + '"']);
             }
-            if (this.variant.video.length) {
+            if (this.variant.video.length && this.playlist.includeVideo()) {
                 properties.push(['VIDEO', '"' + this.variant.video[0].groupId + '"']);
             }
             out += "#EXT-X-STREAM-INF:" + this.propertiesToCommaSeparated(properties) + "\n";

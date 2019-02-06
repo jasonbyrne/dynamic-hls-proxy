@@ -36,13 +36,12 @@
   "homepage": "https://github.com/jasonbyrne/dynamic-hls-proxy#readme",
   "dependencies": {
     "hls-parser": "^0.2.2",
-    "node": "^11.1.0",
-    "request": "^2.88.0",
-    "typescript": "^3.1.6"
+    "request": "^2.88.0"
   },
   "devDependencies": {
     "@types/node": "^10.12.9",
-    "typescript": "^3.1.6"
+    "node": "^11.9.0",
+    "typescript": "^3.3.1"
   },
   "engines": {
     "node": ">=0.8.0"

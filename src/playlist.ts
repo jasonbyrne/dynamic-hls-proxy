@@ -6,6 +6,8 @@ import { ChunklistPruneType } from "./chunklist";
 const request = require('request');
 const HLS = require('hls-parser'); 
 
+const HD_MIN_HEIGHT: number = 720;
+
 export enum PlaylistTypeFilter {
     "VideoAndAudio",
     "AudioOnly",
@@ -31,6 +33,9 @@ export class Playlist {
     protected renditions: Rendition[] = [];
     protected typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
     protected limit: number = -1;
+    protected frameRateRange: [number, number] = [0, 120];
+    protected bandwidthRange: [number, number] = [0, 99999999];
+    protected resolutionRange: [number, number] = [0, 4320];
     protected baseUrl: string = '';
     protected dynamicChunklists: boolean = false;
     protected dynamicChunklistEndpoint: string = '';
@@ -72,21 +77,43 @@ export class Playlist {
         });
     }
 
-    protected includeAudio(): boolean {
+    public includeAudio(): boolean {
         return (
             this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
             this.typeFilter == PlaylistTypeFilter.AudioOnly
         );
     }
 
-    protected includeVideo(): boolean {
+    public includeVideo(): boolean {
         return (
             this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
             this.typeFilter == PlaylistTypeFilter.VideoOnly
         );
     }
 
+    public setFrameRateRange(min: number, max: number) {
+        if (min > max) {
+            throw new Error('Minimum frame rate can not be greater than maximum frame rate');
+        }
+        this.frameRateRange = [min, max];
+    }
+
+    public setBandwidthRange(min: number, max: number) {
+        if (min > max) {
+            throw new Error('Minimum bandwidth can not be greater than maximum bandwidth');
+        }
+        this.bandwidthRange = [min, max];
+    }
+
+    public setResolutionRange(min: number, max: number) {
+        if (min > max) {
+            throw new Error('Minimum resolution can not be greater than maximum resolution');
+        }
+        this.resolutionRange = [min, max];
+    }
+
     public sortByBandwidth(order: RenditionSortOrder = RenditionSortOrder.bestFirst): Playlist {
+        const playlist: Playlist = this;
         let middleBandwidth: number | null = null;
         if (
             order == RenditionSortOrder.middleFirst ||
@@ -98,7 +125,10 @@ export class Playlist {
                 // Get only the video renditions and sort them by bandwidth
                 if (
                     rendition.getType() == RenditionType.video &&
-                    (order != RenditionSortOrder.nonHdFirst || rendition.getHeight() < 720)
+                    rendition.isBandwidthBetween(playlist.bandwidthRange) &&
+                    rendition.isFrameRateBetween(playlist.frameRateRange) &&
+                    rendition.isResolutionBetween(playlist.resolutionRange) &&
+                    (order != RenditionSortOrder.nonHdFirst || rendition.getHeight() < HD_MIN_HEIGHT)
                 ) {
                     videoBandwidths.push(rendition.getBandwidth());
                 }
@@ -181,41 +211,38 @@ export class Playlist {
     }
 
     public toString(): string {
-        let playlist: Playlist = this;
+        const playlist: Playlist = this;
         let meta: string = "#EXTM3U\n";
-        if (this.m3u8.version) {
-            meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
-        }
-        // Loop through the variants and write out the unique media tracks
-        let mediaTracksAlreadyPrinted: string[] = [];
-        this.m3u8.variants.forEach(function (variant: iVariant) {
-            // #EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="audio1",NAME="eng",DEFAULT=NO,AUTOSELECT=YES,LANGUAGE="eng",URI="audio_128_eng_rendition.m3u8"
-            variant.audio.concat(variant.closedCaptions).concat(variant.subtitles)
-                .forEach(function (data: iMediaTrack) {
-                    let mediaTrack = new MediaTrack(playlist, data);
-                    // If we haven't included this group id yet
-                    if (
-                        mediaTracksAlreadyPrinted.indexOf(mediaTrack.getUniqueKey()) < 0 &&
-                        ( !mediaTrack.isAudio || playlist.includeAudio() )
-                    ) {
-                        mediaTracksAlreadyPrinted.push(mediaTrack.getUniqueKey());
-                        meta += mediaTrack.toString();
-                    }
-                });
-        });
-        // Write out the variants
         let iframeRenditions: string[] = [];
         let videoRenditions: string[] = [];
         let audioRenditions: string[] = [];
-        this.renditions.forEach(function(rendition: Rendition) {
-            if (rendition.getType() == RenditionType.iframe) {
-                if (playlist.limit < 1 || iframeRenditions.length < playlist.limit) {
-                    iframeRenditions.push(rendition.toString().trim());
+        let tracks: { [key: string]: string } = {};
+        if (this.m3u8.version) {
+            meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+        }
+        //console.log(this.renditions);
+        // Write out the variants
+        this.renditions.forEach(function (rendition: Rendition) {
+            if (rendition.getType() == RenditionType.video) {
+                if (
+                    (playlist.limit < 1 || videoRenditions.length < playlist.limit) &&
+                    rendition.isBandwidthBetween(playlist.bandwidthRange) && 
+                    rendition.isFrameRateBetween(playlist.frameRateRange) &&
+                    rendition.isResolutionBetween(playlist.resolutionRange)
+                ) {
+                    videoRenditions.push(
+                        rendition.toString().trim()
+                    );
+                    rendition.getTracks().forEach((track: MediaTrack) => {
+                        if (!track.isAudio() || playlist.includeAudio()) {
+                            tracks[track.getUniqueKey()] = track.toString();
+                        }
+                    });
                 }
             }
-            else if (rendition.getType() == RenditionType.video) {
-                if (playlist.limit < 1 || videoRenditions.length < playlist.limit) {
-                    videoRenditions.push(rendition.toString().trim());
+            else if (rendition.getType() == RenditionType.iframe) {
+                if (playlist.limit < 1 || iframeRenditions.length < playlist.limit) {
+                    iframeRenditions.push(rendition.toString().trim());
                 }
             }
             else if (rendition.getType() == RenditionType.audio) {
@@ -224,7 +251,9 @@ export class Playlist {
                 }
             }
         });
+        // Return formatted M3U8
         return meta +
+            Object.keys(tracks).map(key => tracks[key]).join("\n") +
             (this.includeVideo() ? iframeRenditions.join("\n") + "\n" : "") +
             (this.includeVideo() ? videoRenditions.join("\n") + "\n" : "") +
             (this.includeAudio() ? audioRenditions.join("\n") : "");

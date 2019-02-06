@@ -1,6 +1,7 @@
 import { iVariant } from "./hls-parser-types";
 import { Playlist, PlaylistTypeFilter } from "./playlist";
 import { StreamInfo } from "./stream-info";
+import { MediaTrack } from './media-track';
 
 const querystring = require('querystring');
 
@@ -22,6 +23,10 @@ export class Rendition {
         this.playlist = playlist;
     }
 
+    public getTracks(): MediaTrack[] {
+        return this.streamInfo.getTracks();
+    }
+
     public getType(): RenditionType {
         if (this.variant.isIFrameOnly) {
             return RenditionType.iframe;
@@ -38,8 +43,40 @@ export class Rendition {
         return this.variant.resolution.height;
     }
 
+    public getFrameRate(): number {
+        return this.variant.frameRate;
+    }
+
     public getBandwidth(): number {
         return this.variant.bandwidth;
+    }
+
+    public getAverageBandwidth(): number {
+        return this.variant.averageBandwidth;
+    }
+
+    public isResolutionBetween(range: [number, number]): boolean {
+        const height: number = this.getHeight();
+        return typeof height == 'undefined' || (
+            height >= range[0] &&
+            height <= range[1]
+        );
+    }
+
+    public isFrameRateBetween(range: [number, number]): boolean {
+        const frameRate: number = this.getFrameRate();
+        return typeof frameRate == 'undefined' || (
+            frameRate >= range[0] &&
+            frameRate <= range[1]
+        );
+    }
+
+    public isBandwidthBetween(range: [number, number]): boolean {
+        const bandwidth: number = this.getBandwidth() || this.getAverageBandwidth();
+        return typeof bandwidth == 'undefined' || (
+            bandwidth >= range[0] &&
+            bandwidth <= range[1]
+        );
     }
 
     public toString(): string {
