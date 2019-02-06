@@ -288,8 +288,7 @@ export class Playlist {
         return (url.protocol !== null ? url.protocol + '//' : '') +
             (url.host !== null ? url.host : '') +
             (url.pathname !== null ? url.pathname : '') +
-            ((url.search || Object.keys(qsParams).length > 0) ? '?' + qs.toString() : '') +
-            "\n";
+            ((url.search || Object.keys(qsParams).length > 0) ? '?' + qs.toString() : '');
     }
 
 }
