@@ -66,6 +66,18 @@ This sorts the output by bandwidth. The argument is optional. The default will s
  - secondFirst = Put the second rendition first and then order highest-to-lowest
  - nonHdFirst = Put the first non-HD (< 720p) rendition first and then order highest-to-lowest
 
+ ### setFrameRateRange(range: [number, number])
+
+Set the min and max frame rates you want to include. If playlist does not list a frame rate it will always include it, so be sure your playlist outputs this value. This is useful if you need to filter out 60 frames per second for devices that do not support it.
+
+### setBandwidthRange(range: [number, number])
+
+Set the min and max bandwidths you want to include.
+
+### setResolutionRange(range: [number, number])
+
+Set the min and max bandwidths you want to include. This goes by height. So [0, 719] would be standard definition only.
+
 ### setLimit(n: number)
 
 This allows you to only return a certain number of renditions on the list.
@@ -109,7 +121,3 @@ This sets how the segments will be pruned, if a max duration is set. The argumen
  - pruneEnd = Prune away (remove) the ending segments
  - pruneStartAndEnd = Prune away (remove) the beginning and ending segments equally, leaving only the middle segments
  - preview = Chops the chunklist segments up in to thirds, and takes enough of each third to stitch together a preview clip
-
- ### setBaseUrl(baseUrl: string)
-
-This will prepend a domain or path prefix to all segment URIs.
