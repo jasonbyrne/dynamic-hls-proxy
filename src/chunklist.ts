@@ -1,8 +1,7 @@
 import { iMediaPlaylist, iGenericPlaylist, iSegment } from "./hls-parser-types";
 import { Segment } from "./segment";
-
-const request = require('request');
-const HLS = require('hls-parser'); 
+import * as HLS from 'hls-parser';
+import { Playlist } from '.';
 
 export enum ChunklistPruneType {
     "noPrune",
@@ -41,16 +40,10 @@ export class Chunklist {
 
     static loadFromUrl(url: string): Promise<Chunklist> {
         return new Promise(function (resolve, reject) {
-            request(url, function (err, response, body) {
-                if (err) {
-                    reject("Could not load url: " + err);
-                }
-                if (response.statusCode >= 200 && response.statusCode <= 299 && body) {
-                    resolve(new Chunklist(body));
-                }
-                else {
-                    reject("Unexpected http response: " + response.statusCode);
-                }
+            Playlist.fetch(url).then((body: string) => {
+                resolve(new Chunklist(body));
+            }).catch((err) => {
+                reject(err);
             });
         });
     }

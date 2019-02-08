@@ -3,9 +3,9 @@ import { Rendition, RenditionType } from "./rendition";
 import { MediaTrack } from "./media-track";
 import { ChunklistPruneType } from "./chunklist";
 import { parse, UrlWithStringQuery } from "url"
-
-const request = require('request');
-const HLS = require('hls-parser'); 
+import * as http from 'https'
+import * as https from 'https'
+import * as HLS from 'hls-parser';
 
 const HD_MIN_HEIGHT: number = 720;
 
@@ -65,16 +65,10 @@ export class Playlist {
 
     static loadFromUrl(url: string): Promise<Playlist> {
         return new Promise(function (resolve, reject) {
-            request(url, function (err, response, body) {
-                if (err) {
-                    reject("Could not load url: " + err);
-                }
-                if (response.statusCode >= 200 && response.statusCode <= 299 && body) {
-                    resolve(new Playlist(body));
-                }
-                else {
-                    reject("Unexpected http response: " + response.statusCode);
-                }
+            Playlist.fetch(url).then((body: string) => {
+                resolve(new Playlist(body));
+            }).catch((err) => {
+                reject(err);
             });
         });
     }
@@ -289,6 +283,44 @@ export class Playlist {
             (url.host !== null ? url.host : '') +
             (url.pathname !== null ? url.pathname : '') +
             ((url.search || Object.keys(qsParams).length > 0) ? '?' + qs.toString() : '');
+    }
+
+    static fetch(url: string): Promise<string> {
+        return new Promise(function (resolve, reject) {
+            try {
+                const parsedUrl: URL = new URL(url);
+                const options = {
+                    hostname: parsedUrl.hostname,
+                    port: parsedUrl.port,
+                    path: parsedUrl.pathname,
+                    method: 'GET'
+                }
+                const req = (parsedUrl.protocol == 'https:' ? https : http).request(options, (res) => {
+                    let body: string = '';
+                    res.on('data', (d) => {
+                        body += d;
+                    });
+                    res.on('end', () => {
+                        if (typeof res == 'undefined' || typeof res.statusCode == 'undefined') {
+                            return reject('Invalid http response');
+                        }
+                        if (res.statusCode >= 200 && res.statusCode <= 299 && body) {
+                            resolve(body);
+                        }
+                        else {
+                            reject("Unexpected http response: " + res.statusCode);
+                        }
+                    })
+                })
+                req.on('error', (err) => {
+                    reject("Could not load url: " + err);
+                })
+                req.end()
+            }
+            catch (ex) {
+                reject(ex);
+            }
+        });
     }
 
 }
