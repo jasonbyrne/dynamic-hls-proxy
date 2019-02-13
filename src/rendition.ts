@@ -2,7 +2,6 @@ import { iVariant } from "./hls-parser-types";
 import { Playlist } from "./playlist";
 import { StreamInfo } from "./stream-info";
 import { MediaTrack } from './media-track';
-import * as querystring from 'querystring';
 
 export enum RenditionType {
     "video",
@@ -88,8 +87,10 @@ export class Rendition {
             const props = JSON.parse(JSON.stringify(this.playlist.getDynamicChunklistProperties()));
             props.uri = this.variant.uri;
             props.baseUrl = this.playlist.getBaseUrl();
-
-            out += this.playlist.getDynamicChunklistEndpoint() + '?' + querystring.stringify(props) + "\n";
+            out += Playlist.buildUrl(
+                this.playlist.getDynamicChunklistEndpoint(),
+                props
+            ) + "\n";
         }
         else {
             out += Playlist.buildUrl(
