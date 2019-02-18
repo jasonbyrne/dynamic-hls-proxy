@@ -25,4 +25,5 @@ Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
         .setTypeFilter(PlaylistTypeFilter.VideoAndAudio)
         .sortByBandwidth(RenditionSortOrder.worstFirst);
     console.log(playlist.toString());
+    console.log(playlist.getVideoRenditionUrl(0));
 })

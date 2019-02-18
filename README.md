@@ -108,6 +108,10 @@ This will set the endpoint that will be used for the dynamic chunklists, with an
 
 This will set the properties that the dynamic chunklist should use, such as its prune type and max duration.
 
+### getVideoRenditionUrl(atIndex: number, absolute: boolean)
+
+Returns the video rendition URL at the specified index. This is affected by sortByBandwidth, but NOT by setFilterType. "absolute" defaults to true and returns the fully-qualified URL while false would return the exact path that's written within the original Playlist.
+
 ### Chunklist.loadFromString(m3u8: string)
 
 This static constructor method will return a Chunklist instance. Pass in a string of an m3u8 chunklist.
