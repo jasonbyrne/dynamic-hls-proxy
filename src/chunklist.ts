@@ -13,6 +13,7 @@ export enum ChunklistPruneType {
 
 export class Chunklist {
 
+    protected _url: string | null = null;
     protected _m3u8: iMediaPlaylist;
     protected _segments: Segment[] = [];
     protected _totalDuration: number = 0;
@@ -26,6 +27,10 @@ export class Chunklist {
 
     public get segments(): Segment[] {
         return this._segments;
+    }
+
+    public get url(): string | null {
+        return this._url;
     }
 
     protected constructor(body: string) {
@@ -49,7 +54,9 @@ export class Chunklist {
     static loadFromUrl(url: string): Promise<Chunklist> {
         return new Promise(function (resolve, reject) {
             Playlist.fetch(url).then((body: string) => {
-                resolve(new Chunklist(body));
+                const chunklist = new Chunklist(body);
+                chunklist._url = url;
+                resolve(chunklist);
             }).catch((err) => {
                 reject(err);
             });

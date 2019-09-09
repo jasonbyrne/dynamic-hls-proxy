@@ -30,6 +30,7 @@ export interface DynamicChunklistProperties {
 
 export class Playlist {
 
+    protected _url: string | null = null;
     protected m3u8: iMasterPlaylist;
     protected renditions: Rendition[] = [];
     protected typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
@@ -45,6 +46,10 @@ export class Playlist {
         pruneType: ChunklistPruneType.noPrune,
         maxDuration: -1,
     };
+
+    public get url(): string | null {
+        return this._url;
+    }
 
     protected constructor(body: string) {
         let m3u8: iGenericPlaylist = HLS.parse(body);
@@ -66,7 +71,9 @@ export class Playlist {
     static loadFromUrl(url: string): Promise<Playlist> {
         return new Promise(function (resolve, reject) {
             Playlist.fetch(url).then((body: string) => {
-                resolve(new Playlist(body));
+                const playlist = new Playlist(body);
+                playlist._url = url;
+                resolve(playlist);
             }).catch((err) => {
                 reject(err);
             });

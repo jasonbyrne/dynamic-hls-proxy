@@ -1,4 +1,5 @@
-import { Playlist, PlaylistTypeFilter, RenditionSortOrder, ChunklistPruneType } from ".";
+import { Playlist, PlaylistTypeFilter, RenditionSortOrder, ChunklistPruneType, Chunklist } from ".";
+import { URL } from 'url';
 
 const playlistUrl: string = 'http://stream-archive-input-test.s3.amazonaws.com/output/14ajhmZDE6Wi9ct9_qHDCWeukB15ssKO/playlist.m3u8';
 

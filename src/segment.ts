@@ -15,43 +15,11 @@ export class Segment {
         return this._segment;
     }
 
-    public get sequenceNumber(): number {
-        return this.segment.mediaSequenceNumber;
-    }
-
-    public get path(): string {
-        return new URL(this._segment.uri, this._chunklist.getBaseUrl()).pathname;
-    }
-
-    public get uri(): string {
-        return new URL(this._segment.uri, this._chunklist.getBaseUrl()).href;
-    }
-
     constructor(chunklist: Chunklist, segment: iSegment) {
         this._segment = segment;
         this._segmentInfo = new SegmentInfo(chunklist, segment);
         this._chunklist = chunklist;
     }
-
-    public download = (localPath: string): Promise<string> => {
-        return new Promise(async resolve => {
-            const file = fs.createWriteStream(localPath);
-            const headers: any = (() => {
-                if (this.segment.byterange) {
-                    const start: number = this.segment.byterange.offset;
-                    const end: number = this.segment.byterange.offset + this.segment.byterange.length;
-                    return {
-                        Range: `bytes=${start}-${end}`
-                    }
-                }
-                return {};
-            })();
-            http.get(this.uri, { headers: headers }, function (response) {
-                response.pipe(file);
-                resolve(localPath);
-            });
-        });
-    };
 
     public getMediaSequenceNumber(): number {
         return this._segment.mediaSequenceNumber;
