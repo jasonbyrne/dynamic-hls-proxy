@@ -19,13 +19,18 @@ export interface iResolution {
     height: number
 }
 
+export interface iByteRange {
+    offset: number,
+    length: number
+}
+
 export interface iSegment {
     type: string,
     uri: string,
     mimeType: string,
     duration: number,
     title: string,
-    byterange: any,
+    byterange: iByteRange | null,
     discontinuity: boolean,
     mediaSequenceNumber: number,
     discontinuitySequence: number,

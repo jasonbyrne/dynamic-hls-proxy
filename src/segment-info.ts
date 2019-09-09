@@ -25,7 +25,6 @@ export class SegmentInfo {
     public toString(): string {
         let out: string = '';
         let duration: string;
-        let properties: any[] = [];
 
         if (this.segment.programDateTime) {
             out += "#EXT-X-PROGRAM-DATE-TIME:" + this.segment.programDateTime.toISOString() + "\n";
@@ -35,7 +34,8 @@ export class SegmentInfo {
         }
         if (this.segment.duration % 1 === 0) {
             duration = this.segment.duration.toFixed(1);
-        } else {
+        }
+        else {
             duration = this.segment.duration.toString();
         }
         out += "#EXTINF:" + duration + ",\n";
