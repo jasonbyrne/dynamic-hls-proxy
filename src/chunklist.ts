@@ -13,12 +13,20 @@ export enum ChunklistPruneType {
 
 export class Chunklist {
 
-    protected m3u8: iMediaPlaylist;
-    protected segments: Segment[] = [];
-    protected totalDuration: number = 0;
-    protected baseUrl: string = '';
-    protected pruneType: ChunklistPruneType = ChunklistPruneType.noPrune;
-    protected maxDuration: number = -1;
+    protected _m3u8: iMediaPlaylist;
+    protected _segments: Segment[] = [];
+    protected _totalDuration: number = 0;
+    protected _baseUrl: string = '';
+    protected _pruneType: ChunklistPruneType = ChunklistPruneType.noPrune;
+    protected _maxDuration: number = -1;
+
+    public get m3u8(): iMediaPlaylist {
+        return this._m3u8;
+    }
+
+    public get segments(): Segment[] {
+        return this._segments;
+    }
 
     protected constructor(body: string) {
         let m3u8: iGenericPlaylist = HLS.parse(body);
@@ -26,11 +34,11 @@ export class Chunklist {
         if (m3u8.isMasterPlaylist) {
             throw new Error("This m3u8 is a master playlist.");
         }
-        this.m3u8 = <iMediaPlaylist> m3u8;
-        this.m3u8.segments.forEach(function (iSegment: iSegment, index: number) {
+        this._m3u8 = <iMediaPlaylist> m3u8;
+        this._m3u8.segments.forEach(function (iSegment: iSegment, index: number) {
             let segment: Segment = new Segment(chunklist, iSegment);
-            chunklist.segments.push(segment);
-            chunklist.totalDuration += segment.getDuration();
+            chunklist._segments.push(segment);
+            chunklist._totalDuration += segment.getDuration();
         });
     }
 
@@ -49,37 +57,36 @@ export class Chunklist {
     }
 
     public setPruneType(pruneType: ChunklistPruneType): Chunklist {
-        this.pruneType = pruneType;
+        this._pruneType = pruneType;
         return this;
     }
 
     public getPruneType(): ChunklistPruneType {
-        return this.pruneType;
+        return this._pruneType;
     }
 
     public setMaxDuration(maxDuration: number): Chunklist {
-        this.maxDuration = maxDuration;
+        this._maxDuration = maxDuration;
         return this;
     }
 
     public getMaxDuration(): number {
-        return this.maxDuration;
+        return this._maxDuration;
     }
 
     public setBaseUrl(baseUrl: string): Chunklist {
-        this.baseUrl = baseUrl;
+        this._baseUrl = baseUrl;
         return this;
     }
 
     public getBaseUrl(): string {
-        return this.baseUrl;
+        return this._baseUrl;
     }
 
     public toString(): string {
-        let chunklist: Chunklist = this;
         let meta: string = "#EXTM3U\n";
-        if (this.m3u8.version) {
-            meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+        if (this._m3u8.version) {
+            meta += "#EXT-X-VERSION: " + this._m3u8.version + "\n";
         }
 
         let firstMediaSequenceNumber: number = -1;
@@ -96,8 +103,8 @@ export class Chunklist {
         });
         meta += "#EXT-X-TARGETDURATION:" + Math.ceil(highestDuration).toString() + "\n";
         meta += "#EXT-X-MEDIA-SEQUENCE:" + firstMediaSequenceNumber.toString() + "\n";
-        if (this.m3u8.playlistType) {
-            meta += "#EXT-X-PLAYLIST-TYPE:" + this.m3u8.playlistType + "\n";
+        if (this._m3u8.playlistType) {
+            meta += "#EXT-X-PLAYLIST-TYPE:" + this._m3u8.playlistType + "\n";
         }
         meta += segmentLines.join("\n") + "\n";
 
@@ -105,30 +112,30 @@ export class Chunklist {
     }
 
     protected getPrunedSegments(): Segment[] {
-        const maxDuration: number = this.maxDuration;
+        const maxDuration: number = this._maxDuration;
         let skipStartLength: number = 0;
 
-        if (this.maxDuration < 1 || this.totalDuration <= this.maxDuration) {
-            return this.segments;
+        if (this._maxDuration < 1 || this._totalDuration <= this._maxDuration) {
+            return this._segments;
         }
 
-        switch (this.pruneType) {
+        switch (this._pruneType) {
             case ChunklistPruneType.noPrune:
-                return this.segments;
+                return this._segments;
             case ChunklistPruneType.preview:
                 return this.getPreviewSegments();
             case ChunklistPruneType.pruneStart:
-                skipStartLength = this.totalDuration - this.maxDuration;
+                skipStartLength = this._totalDuration - this._maxDuration;
                 break;
             case ChunklistPruneType.pruneStartAndEnd:
-                skipStartLength = (this.totalDuration - this.maxDuration) / 2;
+                skipStartLength = (this._totalDuration - this._maxDuration) / 2;
                 break;
         }
 
         let segments: Segment[] = [];
         let totalStartSkipped: number = 0;
         let totalDuration: number = 0;
-        this.segments.forEach(function(segment: Segment) {
+        this._segments.forEach(function(segment: Segment) {
             if (skipStartLength > totalStartSkipped) {
                 totalStartSkipped += segment.getDuration();
                 return;
@@ -144,15 +151,15 @@ export class Chunklist {
     }
 
     protected getPreviewSegments(): Segment[] {
-        const maxDuration = this.maxDuration;
-        const chunkDurationTarget: number = Math.floor(this.maxDuration / 3);
-        const skippedDurationTarget: number = Math.floor(this.totalDuration / 3);
+        const maxDuration = this._maxDuration;
+        const chunkDurationTarget: number = Math.floor(this._maxDuration / 3);
+        const skippedDurationTarget: number = Math.floor(this._totalDuration / 3);
 
         let segments: Segment[] = [];
         let totalDuration: number = 0;
         let chunkDuration: number = 0;
         let skippedDuration: number = 0;
-        this.segments.forEach(function(segment: Segment) {
+        this._segments.forEach(function(segment: Segment) {
             if (Math.ceil(totalDuration) >= maxDuration) {
                 return;
             }
