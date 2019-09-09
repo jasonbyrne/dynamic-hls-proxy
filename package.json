@@ -1,6 +1,6 @@
 {
   "name": "dynamic-hls-proxy",
-  "version": "1.1.12",
+  "version": "1.1.14",
   "description": "Load a master HLS playlist (m3u8) and dynamically filter or re-sort it.",
   "files": [
     "dist/",

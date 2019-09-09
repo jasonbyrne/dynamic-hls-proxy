@@ -118,7 +118,7 @@ export class Chunklist {
         return meta + "#EXT-X-ENDLIST";
     }
 
-    protected getPrunedSegments(): Segment[] {
+    public getPrunedSegments(): Segment[] {
         const maxDuration: number = this._maxDuration;
         let skipStartLength: number = 0;
 
