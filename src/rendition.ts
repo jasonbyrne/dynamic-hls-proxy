@@ -53,6 +53,10 @@ export class Rendition {
         return this.variant.averageBandwidth;
     }
 
+    public getUri(): string {
+        return this.variant.uri;
+    }
+
     public isResolutionBetween(range: [number, number]): boolean {
         const height: number = this.getHeight();
         return typeof height == 'undefined' || (
