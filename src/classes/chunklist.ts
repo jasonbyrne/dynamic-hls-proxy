@@ -34,7 +34,7 @@ export class Chunklist {
   protected constructor(body: string) {
     let m3u8: HLS.types.Playlist = HLS.parse(body);
     if (m3u8.isMasterPlaylist) {
-      throw new Error("This m3u8 is a master playlist.");
+      throw "This m3u8 is a master playlist.";
     }
     this._m3u8 = <HLS.types.MediaPlaylist>m3u8;
     this._m3u8.segments.forEach((segment) => {
