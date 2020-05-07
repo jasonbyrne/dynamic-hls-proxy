@@ -1,7 +1,7 @@
-import { Playlist, PlaylistTypeFilter, RenditionSortOrder, ChunklistPruneType, Chunklist } from ".";
-import { URL } from 'url';
+import { Playlist, PlaylistTypeFilter, RenditionSortOrder } from "../index";
 
-const playlistUrl: string = 'http://stream-archive-input-test.s3.amazonaws.com/output/14ajhmZDE6Wi9ct9_qHDCWeukB15ssKO/playlist.m3u8';
+const playlistUrl: string =
+  "http://stream-archive-input-test.s3.amazonaws.com/output/14ajhmZDE6Wi9ct9_qHDCWeukB15ssKO/playlist.m3u8";
 
 /*
 Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
@@ -20,11 +20,9 @@ Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
 */
 
 Playlist.loadFromUrl(playlistUrl).then(function (playlist: Playlist) {
-    playlist
-        .setBaseUrl('https://videos.flosports.tv/')
-        .setQueryStringParam('signature', '1234567')
-        .setTypeFilter(PlaylistTypeFilter.VideoAndAudio)
-        .sortByBandwidth(RenditionSortOrder.worstFirst);
-    console.log(playlist.toString());
-    console.log(playlist.getVideoRenditionUrl(0));
-})
+  playlist
+    .setBaseUrl("https://videos.flosports.tv/")
+    .setTypeFilter(PlaylistTypeFilter.VideoWithAudio)
+    .sortByBandwidth(RenditionSortOrder.worstFirst);
+  console.log(playlist.toString());
+});

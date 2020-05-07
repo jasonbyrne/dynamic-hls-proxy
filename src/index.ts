@@ -1,12 +1,16 @@
-import { Playlist, PlaylistTypeFilter, RenditionSortOrder, DynamicChunklistProperties } from './playlist';
-import { Chunklist, ChunklistPruneType } from './chunklist';
-
+import {
+  Playlist,
+  PlaylistTypeFilter,
+  RenditionSortOrder,
+  DynamicChunklistProperties,
+} from "./classes/playlist";
+import { Chunklist, ChunklistPruneType } from "./classes/chunklist";
 
 export {
-    Playlist,
-    PlaylistTypeFilter,
-    RenditionSortOrder,
-    DynamicChunklistProperties,
-    Chunklist,
-    ChunklistPruneType
+  Playlist,
+  PlaylistTypeFilter,
+  RenditionSortOrder,
+  DynamicChunklistProperties,
+  Chunklist,
+  ChunklistPruneType,
 };

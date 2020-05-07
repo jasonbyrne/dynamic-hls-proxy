@@ -1,0 +1,386 @@
+import { Rendition, RenditionType } from "./rendition";
+import { AudioTrack } from "./audio-track";
+import { ChunklistPruneType } from "./chunklist";
+import { parse, UrlWithStringQuery } from "url";
+import * as http from "https";
+import * as https from "https";
+import * as HLS from "hls-parser";
+
+const HD_MIN_HEIGHT: number = 720;
+
+export enum PlaylistTypeFilter {
+  "VideoWithAudio",
+  "VideoAndAudio",
+  "AudioOnly",
+  "VideoOnly",
+}
+
+export enum RenditionSortOrder {
+  "bestFirst",
+  "worstFirst",
+  "middleFirst",
+  "secondFirst",
+  "nonHdFirst",
+}
+
+export interface DynamicChunklistProperties {
+  pruneType: ChunklistPruneType;
+  maxDuration: number;
+}
+
+export class Playlist {
+  protected _url: string | null = null;
+  protected m3u8: HLS.types.MasterPlaylist;
+  protected renditions: Rendition[] = [];
+  protected typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
+  protected limit: number = -1;
+  protected frameRateRange: [number, number] = [0, 120];
+  protected bandwidthRange: [number, number] = [0, 99999999];
+  protected resolutionRange: [number, number] = [0, 4320];
+  protected baseUrl: string = "";
+  protected queryString: { [key: string]: string } = {};
+  protected dynamicChunklists: boolean = false;
+  protected dynamicChunklistEndpoint: string = "";
+  protected dynamicChunklistProperties: DynamicChunklistProperties = {
+    pruneType: ChunklistPruneType.noPrune,
+    maxDuration: -1,
+  };
+
+  public get url(): string | null {
+    return this._url;
+  }
+
+  protected constructor(body: string) {
+    const m3u8: HLS.types.Playlist = HLS.parse(body);
+    if (!m3u8.isMasterPlaylist) {
+      throw "This m3u8 is not a master playlist.";
+    }
+    this.m3u8 = <HLS.types.MasterPlaylist>m3u8;
+    this.m3u8.variants.forEach((variant) => {
+      this.renditions.push(new Rendition(this, variant));
+    });
+  }
+
+  static loadFromString(body: string): Playlist {
+    return new Playlist(body);
+  }
+
+  static loadFromUrl(url: string): Promise<Playlist> {
+    return new Promise(function (resolve, reject) {
+      Playlist.fetch(url)
+        .then((body: string) => {
+          const playlist = new Playlist(body);
+          playlist._url = url;
+          resolve(playlist);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  }
+
+  public includeAudio(): boolean {
+    return (
+      this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
+      this.typeFilter == PlaylistTypeFilter.AudioOnly
+    );
+  }
+
+  public includeAudioWithVideo(): boolean {
+    return (
+      this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
+      this.typeFilter == PlaylistTypeFilter.VideoWithAudio
+    );
+  }
+
+  public includeVideo(): boolean {
+    return (
+      this.typeFilter == PlaylistTypeFilter.VideoWithAudio ||
+      this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
+      this.typeFilter == PlaylistTypeFilter.VideoOnly
+    );
+  }
+
+  public setFrameRateRange(min: number, max: number) {
+    if (min > max) {
+      throw new Error(
+        "Minimum frame rate can not be greater than maximum frame rate"
+      );
+    }
+    this.frameRateRange = [min, max];
+  }
+
+  public setBandwidthRange(min: number, max: number) {
+    if (min > max) {
+      throw new Error(
+        "Minimum bandwidth can not be greater than maximum bandwidth"
+      );
+    }
+    this.bandwidthRange = [min, max];
+  }
+
+  public setResolutionRange(min: number, max: number) {
+    if (min > max) {
+      throw new Error(
+        "Minimum resolution can not be greater than maximum resolution"
+      );
+    }
+    this.resolutionRange = [min, max];
+  }
+
+  public getVideoRenditionUrl(atIndex: number, absolute: boolean = true) {
+    let videoRenditions: Rendition[] = [];
+
+    this.renditions.forEach(function (rendition: Rendition) {
+      if (rendition.getType() == RenditionType.video) {
+        videoRenditions.push(rendition);
+      }
+    });
+
+    if (!(atIndex in videoRenditions)) {
+      throw new Error(`Video Rendition not found at index ${atIndex}`);
+    }
+
+    const rendition: Rendition = videoRenditions[atIndex];
+
+    if (!absolute) {
+      return rendition.getUri();
+    }
+
+    return Playlist.buildUrl(
+      this.getBaseUrl() + rendition.getUri(),
+      this.getQueryStringParams()
+    );
+  }
+
+  public sortByBandwidth(
+    order: RenditionSortOrder = RenditionSortOrder.bestFirst
+  ): Playlist {
+    const playlist: Playlist = this;
+    let middleBandwidth: number | null = null;
+    if (
+      order == RenditionSortOrder.middleFirst ||
+      order == RenditionSortOrder.secondFirst ||
+      order == RenditionSortOrder.nonHdFirst
+    ) {
+      let videoBandwidths: number[] = [];
+      this.renditions.forEach(function (rendition: Rendition) {
+        // Get only the video renditions and sort them by bandwidth
+        if (
+          rendition.getType() == RenditionType.video &&
+          rendition.isBandwidthBetween(playlist.bandwidthRange) &&
+          rendition.isFrameRateBetween(playlist.frameRateRange) &&
+          rendition.isResolutionBetween(playlist.resolutionRange) &&
+          (order != RenditionSortOrder.nonHdFirst ||
+            rendition.getHeight() < HD_MIN_HEIGHT)
+        ) {
+          videoBandwidths.push(rendition.getBandwidth());
+        }
+        videoBandwidths.sort((a, b) => b - a);
+        if (order == RenditionSortOrder.middleFirst) {
+          middleBandwidth =
+            videoBandwidths[Math.floor(videoBandwidths.length / 2)];
+        }
+        if (order == RenditionSortOrder.nonHdFirst) {
+          middleBandwidth = videoBandwidths[0];
+        } else {
+          middleBandwidth = videoBandwidths[1];
+        }
+      });
+    }
+    this.renditions = this.renditions.sort(function (
+      a: Rendition,
+      b: Rendition
+    ) {
+      if (a.getBandwidth() == middleBandwidth) {
+        return -1000000000;
+      } else if (b.getBandwidth() == middleBandwidth) {
+        return 1000000000;
+      } else {
+        return order == RenditionSortOrder.worstFirst
+          ? a.getBandwidth() - b.getBandwidth()
+          : b.getBandwidth() - a.getBandwidth();
+      }
+    });
+    return this;
+  }
+
+  public setQueryStringParam(key: string, value: string): Playlist {
+    this.queryString[key] = value;
+    return this;
+  }
+
+  public deleteQueryStringParam(key: string): Playlist {
+    delete this.queryString[key];
+    return this;
+  }
+
+  public hasQueryStringParams(): boolean {
+    return Object.keys(this.queryString).length > 0;
+  }
+
+  public getQueryStringParams(): { [key: string]: string } {
+    return this.queryString;
+  }
+
+  public getTypeFilter(): PlaylistTypeFilter {
+    return this.typeFilter;
+  }
+
+  public setTypeFilter(filter: PlaylistTypeFilter): Playlist {
+    this.typeFilter = filter;
+    return this;
+  }
+
+  public setLimit(n: number): Playlist {
+    this.limit = n;
+    return this;
+  }
+
+  public setBaseUrl(baseUrl: string): Playlist {
+    this.baseUrl = baseUrl;
+    return this;
+  }
+
+  public getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
+  public useDynamicChunklists(dynamicChunklists: boolean): Playlist {
+    this.dynamicChunklists = dynamicChunklists;
+    return this;
+  }
+
+  public hasDynamicChunklists(): boolean {
+    return this.dynamicChunklists;
+  }
+
+  public setDynamicChunklistProperties(
+    properties: DynamicChunklistProperties
+  ): Playlist {
+    this.dynamicChunklistProperties = properties;
+    return this;
+  }
+
+  public getDynamicChunklistProperties(): DynamicChunklistProperties {
+    return this.dynamicChunklistProperties;
+  }
+
+  public setDynamicChunklistEndpoint(endpoint: string): Playlist {
+    this.dynamicChunklistEndpoint = endpoint;
+    return this;
+  }
+
+  public getDynamicChunklistEndpoint(): string {
+    return this.dynamicChunklistEndpoint;
+  }
+
+  public toString(): string {
+    let meta: string = "#EXTM3U\n";
+    let iframeRenditions: string[] = [];
+    let videoRenditions: string[] = [];
+    let audioRenditions: string[] = [];
+    let tracks: { [key: string]: string } = {};
+    if (this.m3u8.version) {
+      meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
+    }
+    //console.log(this.renditions);
+    // Write out the variants
+    this.renditions.forEach((rendition) => {
+      if (rendition.getType() == RenditionType.video) {
+        if (
+          (this.limit < 1 || videoRenditions.length < this.limit) &&
+          rendition.isBandwidthBetween(this.bandwidthRange) &&
+          rendition.isFrameRateBetween(this.frameRateRange) &&
+          rendition.isResolutionBetween(this.resolutionRange)
+        ) {
+          videoRenditions.push(rendition.toString().trim());
+          rendition.getTracks().forEach((track: AudioTrack) => {
+            if (!track.isAudio() || this.includeAudioWithVideo()) {
+              tracks[track.getUniqueKey()] = track.toString();
+            }
+          });
+        }
+      } else if (rendition.getType() == RenditionType.iframe) {
+        if (this.limit < 1 || iframeRenditions.length < this.limit) {
+          iframeRenditions.push(rendition.toString().trim());
+        }
+      } else if (rendition.getType() == RenditionType.audio) {
+        if (this.limit < 1 || audioRenditions.length < this.limit) {
+          audioRenditions.push(rendition.toString().trim());
+        }
+      }
+    });
+    // Return formatted M3U8
+    return (
+      meta +
+      Object.keys(tracks)
+        .map((key) => tracks[key])
+        .join("\n") +
+      (this.includeVideo() ? iframeRenditions.join("\n") + "\n" : "") +
+      (this.includeVideo() ? videoRenditions.join("\n") + "\n" : "") +
+      (this.includeAudio() ? audioRenditions.join("\n") : "")
+    );
+  }
+
+  static buildUrl(
+    inputUrl: string,
+    qsParams: { [key: string]: string }
+  ): string {
+    const url: UrlWithStringQuery = parse(inputUrl, false);
+    const qs: URLSearchParams = new URLSearchParams(url.search);
+    for (let key in qsParams) {
+      qs.set(key, qsParams[key]);
+    }
+    return (
+      (url.protocol !== null ? url.protocol + "//" : "") +
+      (url.host !== null ? url.host : "") +
+      (url.pathname !== null ? url.pathname : "") +
+      (url.search || Object.keys(qsParams).length > 0
+        ? "?" + qs.toString()
+        : "")
+    );
+  }
+
+  static fetch(url: string): Promise<string> {
+    return new Promise(function (resolve, reject) {
+      try {
+        const parsedUrl: URL = new URL(url);
+        const options = {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port,
+          path: parsedUrl.pathname,
+          method: "GET",
+        };
+        const req = (parsedUrl.protocol == "https:" ? https : http).request(
+          options,
+          (res) => {
+            let body: string = "";
+            res.on("data", (d) => {
+              body += d;
+            });
+            res.on("end", () => {
+              if (
+                typeof res == "undefined" ||
+                typeof res.statusCode == "undefined"
+              ) {
+                return reject("Invalid http response");
+              }
+              if (res.statusCode >= 200 && res.statusCode <= 299 && body) {
+                resolve(body);
+              } else {
+                reject("Unexpected http response: " + res.statusCode);
+              }
+            });
+          }
+        );
+        req.on("error", (err) => {
+          reject("Could not load url: " + err);
+        });
+        req.end();
+      } catch (ex) {
+        reject(ex);
+      }
+    });
+  }
+}
