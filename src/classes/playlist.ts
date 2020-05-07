@@ -29,22 +29,44 @@ export interface DynamicChunklistProperties {
 }
 
 export class Playlist {
-  protected _url: string | null = null;
-  protected m3u8: HLS.types.MasterPlaylist;
-  protected renditions: Rendition[] = [];
-  protected typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
-  protected limit: number = -1;
-  protected frameRateRange: [number, number] = [0, 120];
-  protected bandwidthRange: [number, number] = [0, 99999999];
-  protected resolutionRange: [number, number] = [0, 4320];
-  protected baseUrl: string = "";
-  protected queryString: { [key: string]: string } = {};
-  protected dynamicChunklists: boolean = false;
-  protected dynamicChunklistEndpoint: string = "";
-  protected dynamicChunklistProperties: DynamicChunklistProperties = {
+  private _url: string | null = null;
+  private _m3u8: HLS.types.MasterPlaylist;
+  private _renditions: Rendition[] = [];
+  private _typeFilter: PlaylistTypeFilter = PlaylistTypeFilter.VideoAndAudio;
+  private _limit: number = -1;
+  private _frameRateRange: [number, number] = [0, 120];
+  private _bandwidthRange: [number, number] = [0, 99999999];
+  private _resolutionRange: [number, number] = [0, 4320];
+  private _baseUrl: string = "";
+  private _queryString: { [key: string]: string } = {};
+  private _dynamicChunklists: boolean = false;
+  private _dynamicChunklistEndpoint: string = "";
+  private _dynamicChunklistProperties: DynamicChunklistProperties = {
     pruneType: ChunklistPruneType.noPrune,
     maxDuration: -1,
   };
+
+  public get includeAudio(): boolean {
+    return (
+      this._typeFilter == PlaylistTypeFilter.VideoAndAudio ||
+      this._typeFilter == PlaylistTypeFilter.AudioOnly
+    );
+  }
+
+  public get includeAudioWithVideo(): boolean {
+    return (
+      this._typeFilter == PlaylistTypeFilter.VideoAndAudio ||
+      this._typeFilter == PlaylistTypeFilter.VideoWithAudio
+    );
+  }
+
+  public get includeVideo(): boolean {
+    return (
+      this._typeFilter == PlaylistTypeFilter.VideoWithAudio ||
+      this._typeFilter == PlaylistTypeFilter.VideoAndAudio ||
+      this._typeFilter == PlaylistTypeFilter.VideoOnly
+    );
+  }
 
   public get url(): string | null {
     return this._url;
@@ -55,9 +77,9 @@ export class Playlist {
     if (!m3u8.isMasterPlaylist) {
       throw "This m3u8 is not a master playlist.";
     }
-    this.m3u8 = <HLS.types.MasterPlaylist>m3u8;
-    this.m3u8.variants.forEach((variant) => {
-      this.renditions.push(new Rendition(this, variant));
+    this._m3u8 = <HLS.types.MasterPlaylist>m3u8;
+    this._m3u8.variants.forEach((variant) => {
+      this._renditions.push(new Rendition(this, variant));
     });
   }
 
@@ -79,66 +101,38 @@ export class Playlist {
     });
   }
 
-  public includeAudio(): boolean {
-    return (
-      this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
-      this.typeFilter == PlaylistTypeFilter.AudioOnly
-    );
-  }
-
-  public includeAudioWithVideo(): boolean {
-    return (
-      this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
-      this.typeFilter == PlaylistTypeFilter.VideoWithAudio
-    );
-  }
-
-  public includeVideo(): boolean {
-    return (
-      this.typeFilter == PlaylistTypeFilter.VideoWithAudio ||
-      this.typeFilter == PlaylistTypeFilter.VideoAndAudio ||
-      this.typeFilter == PlaylistTypeFilter.VideoOnly
-    );
-  }
-
   public setFrameRateRange(min: number, max: number) {
     if (min > max) {
-      throw new Error(
-        "Minimum frame rate can not be greater than maximum frame rate"
-      );
+      throw "Minimum frame rate can not be greater than maximum frame rate";
     }
-    this.frameRateRange = [min, max];
+    this._frameRateRange = [min, max];
   }
 
   public setBandwidthRange(min: number, max: number) {
     if (min > max) {
-      throw new Error(
-        "Minimum bandwidth can not be greater than maximum bandwidth"
-      );
+      throw "Minimum bandwidth can not be greater than maximum bandwidth";
     }
-    this.bandwidthRange = [min, max];
+    this._bandwidthRange = [min, max];
   }
 
   public setResolutionRange(min: number, max: number) {
     if (min > max) {
-      throw new Error(
-        "Minimum resolution can not be greater than maximum resolution"
-      );
+      throw "Minimum resolution can not be greater than maximum resolution";
     }
-    this.resolutionRange = [min, max];
+    this._resolutionRange = [min, max];
   }
 
   public getVideoRenditionUrl(atIndex: number, absolute: boolean = true) {
     let videoRenditions: Rendition[] = [];
 
-    this.renditions.forEach(function (rendition: Rendition) {
+    this._renditions.forEach(function (rendition: Rendition) {
       if (rendition.getType() == RenditionType.video) {
         videoRenditions.push(rendition);
       }
     });
 
     if (!(atIndex in videoRenditions)) {
-      throw new Error(`Video Rendition not found at index ${atIndex}`);
+      throw `Video Rendition not found at index ${atIndex}`;
     }
 
     const rendition: Rendition = videoRenditions[atIndex];
@@ -164,13 +158,13 @@ export class Playlist {
       order == RenditionSortOrder.nonHdFirst
     ) {
       let videoBandwidths: number[] = [];
-      this.renditions.forEach(function (rendition: Rendition) {
+      this._renditions.forEach(function (rendition: Rendition) {
         // Get only the video renditions and sort them by bandwidth
         if (
           rendition.getType() == RenditionType.video &&
-          rendition.isBandwidthBetween(playlist.bandwidthRange) &&
-          rendition.isFrameRateBetween(playlist.frameRateRange) &&
-          rendition.isResolutionBetween(playlist.resolutionRange) &&
+          rendition.isBandwidthBetween(playlist._bandwidthRange) &&
+          rendition.isFrameRateBetween(playlist._frameRateRange) &&
+          rendition.isResolutionBetween(playlist._resolutionRange) &&
           (order != RenditionSortOrder.nonHdFirst ||
             rendition.getHeight() < HD_MIN_HEIGHT)
         ) {
@@ -188,7 +182,7 @@ export class Playlist {
         }
       });
     }
-    this.renditions = this.renditions.sort(function (
+    this._renditions = this._renditions.sort(function (
       a: Rendition,
       b: Rendition
     ) {
@@ -206,120 +200,167 @@ export class Playlist {
   }
 
   public setQueryStringParam(key: string, value: string): Playlist {
-    this.queryString[key] = value;
+    this._queryString[key] = value;
     return this;
   }
 
   public deleteQueryStringParam(key: string): Playlist {
-    delete this.queryString[key];
+    delete this._queryString[key];
     return this;
   }
 
   public hasQueryStringParams(): boolean {
-    return Object.keys(this.queryString).length > 0;
+    return Object.keys(this._queryString).length > 0;
   }
 
   public getQueryStringParams(): { [key: string]: string } {
-    return this.queryString;
+    return this._queryString;
   }
 
   public getTypeFilter(): PlaylistTypeFilter {
-    return this.typeFilter;
+    return this._typeFilter;
   }
 
   public setTypeFilter(filter: PlaylistTypeFilter): Playlist {
-    this.typeFilter = filter;
+    this._typeFilter = filter;
     return this;
   }
 
   public setLimit(n: number): Playlist {
-    this.limit = n;
+    this._limit = n;
     return this;
   }
 
   public setBaseUrl(baseUrl: string): Playlist {
-    this.baseUrl = baseUrl;
+    this._baseUrl = baseUrl;
     return this;
   }
 
   public getBaseUrl(): string {
-    return this.baseUrl;
+    return this._baseUrl;
   }
 
   public useDynamicChunklists(dynamicChunklists: boolean): Playlist {
-    this.dynamicChunklists = dynamicChunklists;
+    this._dynamicChunklists = dynamicChunklists;
     return this;
   }
 
   public hasDynamicChunklists(): boolean {
-    return this.dynamicChunklists;
+    return this._dynamicChunklists;
   }
 
   public setDynamicChunklistProperties(
     properties: DynamicChunklistProperties
   ): Playlist {
-    this.dynamicChunklistProperties = properties;
+    this._dynamicChunklistProperties = properties;
     return this;
   }
 
   public getDynamicChunklistProperties(): DynamicChunklistProperties {
-    return this.dynamicChunklistProperties;
+    return this._dynamicChunklistProperties;
   }
 
   public setDynamicChunklistEndpoint(endpoint: string): Playlist {
-    this.dynamicChunklistEndpoint = endpoint;
+    this._dynamicChunklistEndpoint = endpoint;
     return this;
   }
 
   public getDynamicChunklistEndpoint(): string {
-    return this.dynamicChunklistEndpoint;
+    return this._dynamicChunklistEndpoint;
   }
 
-  public toString(): string {
-    let meta: string = "#EXTM3U\n";
-    let iframeRenditions: string[] = [];
-    let videoRenditions: string[] = [];
-    let audioRenditions: string[] = [];
-    let tracks: { [key: string]: string } = {};
-    if (this.m3u8.version) {
-      meta += "#EXT-X-VERSION: " + this.m3u8.version + "\n";
-    }
-    //console.log(this.renditions);
+  public getRenditions(): {
+    videoRenditions: Rendition[];
+    audioRenditions: Rendition[];
+    iframeRenditions: Rendition[];
+    audioTracks: { [key: string]: AudioTrack };
+  } {
+    const iframeRenditions: Rendition[] = [];
+    const videoRenditions: Rendition[] = [];
+    const audioRenditions: Rendition[] = [];
+    const audioTracks: { [key: string]: AudioTrack } = {};
     // Write out the variants
-    this.renditions.forEach((rendition) => {
+    this._renditions.forEach((rendition) => {
       if (rendition.getType() == RenditionType.video) {
         if (
-          (this.limit < 1 || videoRenditions.length < this.limit) &&
-          rendition.isBandwidthBetween(this.bandwidthRange) &&
-          rendition.isFrameRateBetween(this.frameRateRange) &&
-          rendition.isResolutionBetween(this.resolutionRange)
+          (this._limit < 1 || videoRenditions.length < this._limit) &&
+          rendition.isBandwidthBetween(this._bandwidthRange) &&
+          rendition.isFrameRateBetween(this._frameRateRange) &&
+          rendition.isResolutionBetween(this._resolutionRange)
         ) {
-          videoRenditions.push(rendition.toString().trim());
+          videoRenditions.push(rendition);
           rendition.getTracks().forEach((track: AudioTrack) => {
-            if (!track.isAudio() || this.includeAudioWithVideo()) {
-              tracks[track.getUniqueKey()] = track.toString();
+            if (!track.isAudio() || this.includeAudioWithVideo) {
+              audioTracks[track.getUniqueKey()] = track;
             }
           });
         }
       } else if (rendition.getType() == RenditionType.iframe) {
-        if (this.limit < 1 || iframeRenditions.length < this.limit) {
-          iframeRenditions.push(rendition.toString().trim());
+        if (this._limit < 1 || iframeRenditions.length < this._limit) {
+          iframeRenditions.push(rendition);
         }
       } else if (rendition.getType() == RenditionType.audio) {
-        if (this.limit < 1 || audioRenditions.length < this.limit) {
-          audioRenditions.push(rendition.toString().trim());
+        if (this._limit < 1 || audioRenditions.length < this._limit) {
+          audioRenditions.push(rendition);
         }
       }
     });
+    return {
+      audioRenditions: audioRenditions,
+      videoRenditions: videoRenditions,
+      iframeRenditions: iframeRenditions,
+      audioTracks: audioTracks,
+    };
+  }
+
+  public getRenditionStrings(): {
+    videoRenditions: string[];
+    audioRenditions: string[];
+    iframeRenditions: string[];
+    audioTracks: string[];
+  } {
+    const {
+      videoRenditions,
+      iframeRenditions,
+      audioRenditions,
+      audioTracks,
+    } = this.getRenditions();
+    return {
+      audioRenditions: audioRenditions.map((rendition) =>
+        rendition.toString().trim()
+      ),
+      videoRenditions: videoRenditions.map((rendition) =>
+        rendition.toString().trim()
+      ),
+      iframeRenditions: iframeRenditions.map((rendition) =>
+        rendition.toString().trim()
+      ),
+      audioTracks: Object.keys(audioTracks).map((key) =>
+        audioTracks[key].toString()
+      ),
+    };
+  }
+
+  public toString(): string {
+    const meta: string[] = ["#EXTM3U"];
+    if (this._m3u8.version) {
+      meta.push("#EXT-X-VERSION: " + this._m3u8.version);
+    }
+    // Renditions
+    const {
+      videoRenditions,
+      iframeRenditions,
+      audioRenditions,
+      audioTracks,
+    } = this.getRenditionStrings();
     // Return formatted M3U8
     return (
-      meta +
-      Object.keys(tracks)
-        .map((key) => tracks[key])
-        .join("\n") +
-      (this.includeVideo() ? iframeRenditions.join("\n") + "\n" : "") +
-      (this.includeVideo() ? videoRenditions.join("\n") + "\n" : "") +
-      (this.includeAudio() ? audioRenditions.join("\n") : "")
+      meta.join("\n") +
+      "\n" +
+      (this.includeAudioWithVideo ? audioTracks.join("\n") + "\n" : "") +
+      (this.includeVideo ? iframeRenditions.join("\n") + "\n" : "") +
+      (this.includeVideo ? videoRenditions.join("\n") + "\n" : "") +
+      (this.includeAudio ? audioRenditions.join("\n") : "")
     );
   }
 

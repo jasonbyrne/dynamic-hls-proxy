@@ -75,7 +75,7 @@ export class StreamInfo {
     if (this.variant.hdcpLevel) {
       properties.push(["HDCP-LEVEL", this.variant.hdcpLevel]);
     }
-    if (this.variant.isIFrameOnly && this.playlist.includeVideo()) {
+    if (this.variant.isIFrameOnly && this.playlist.includeVideo) {
       // #EXT-X-I-FRAME-STREAM-INF:BANDWIDTH=86000,URI="low/iframe.m3u8",PROGRAM-ID=1,CODECS="c1",RESOLUTION="1x1",VIDEO="1"
       if (this.variant.uri) {
         properties.push([
@@ -89,7 +89,7 @@ export class StreamInfo {
         "\n";
     } else {
       // #EXT-X-STREAM-INF:PROGRAM-ID=0,BANDWIDTH=1170400,CODECS="avc1",RESOLUTION=320x240,AUDIO="audio0",CLOSED-CAPTIONS=NONE,SUBTITLES="subtitles0"
-      if (this.variant.audio.length && this.playlist.includeAudioWithVideo()) {
+      if (this.variant.audio.length && this.playlist.includeAudioWithVideo) {
         properties.push(["AUDIO", '"' + this.variant.audio[0].groupId + '"']);
       }
       if (this.variant.closedCaptions.length) {
@@ -104,7 +104,7 @@ export class StreamInfo {
           '"' + this.variant.subtitles[0].groupId + '"',
         ]);
       }
-      if (this.variant.video.length && this.playlist.includeVideo()) {
+      if (this.variant.video.length && this.playlist.includeVideo) {
         properties.push(["VIDEO", '"' + this.variant.video[0].groupId + '"']);
       }
       out +=
