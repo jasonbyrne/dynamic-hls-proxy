@@ -54,7 +54,26 @@ export class Rendition {
     return this.variant?.averageBandwidth || 0;
   }
 
-  public getUri(): string {
+  public getDefaultAudioTrack(): AudioTrack | null {
+    if (this._variant.audio?.length === 0) {
+      return null;
+    }
+    const defaultRendition = this._variant.audio.filter((rendition) => {
+      return rendition.isDefault;
+    });
+    return new AudioTrack(
+      this._playlist,
+      defaultRendition.length > 0 ? defaultRendition[0] : this._variant.audio[0]
+    );
+  }
+
+  public getUri(absolute: boolean = false): string {
+    if (absolute) {
+      return Playlist.buildUrl(
+        this._playlist.getBaseUrl() + this.variant.uri,
+        this._playlist.getQueryStringParams()
+      );
+    }
     return this.variant.uri;
   }
 
@@ -97,11 +116,7 @@ export class Rendition {
         Playlist.buildUrl(this._playlist.getDynamicChunklistEndpoint(), props) +
         "\n";
     } else {
-      out +=
-        Playlist.buildUrl(
-          this._playlist.getBaseUrl() + this.variant.uri,
-          this._playlist.getQueryStringParams()
-        ) + "\n";
+      out += this.getUri(true) + "\n";
     }
 
     return out;

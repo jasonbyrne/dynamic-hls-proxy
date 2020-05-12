@@ -2,81 +2,91 @@ import { Playlist } from "./playlist";
 import * as HLS from "hls-parser";
 
 export class AudioTrack {
-  protected rendition: HLS.types.Rendition<"AUDIO">;
-  protected playlist: Playlist;
+  protected _rendition: HLS.types.Rendition<"AUDIO">;
+  protected _playlist: Playlist;
 
   constructor(playlist: Playlist, rendition: HLS.types.Rendition<"AUDIO">) {
-    this.rendition = rendition;
-    this.playlist = playlist;
+    this._rendition = rendition;
+    this._playlist = playlist;
   }
 
   public getType(): string {
-    return this.rendition.type;
+    return this._rendition.type;
   }
 
   public isAudio(): boolean {
-    return this.rendition.type === "AUDIO";
+    return this._rendition.type === "AUDIO";
   }
 
   public getUniqueKey(): string {
     return (
-      this.rendition.groupId +
+      this._rendition.groupId +
       " " +
-      this.rendition.type +
+      this._rendition.type +
       " " +
-      this.rendition.name
+      this._rendition.name
     );
+  }
+
+  public getUri(absolute: boolean = false): string | null {
+    if (!this._rendition.uri) {
+      return null;
+    }
+    if (absolute) {
+      return Playlist.buildUrl(
+        this._playlist.getBaseUrl() + this._rendition.uri,
+        this._playlist.getQueryStringParams()
+      );
+    }
+    return this._rendition.uri;
   }
 
   public toString(): string {
     let out: string = "";
     let properties: any[] = [];
-    if (this.rendition.groupId) {
-      properties.push(["GROUP-ID", this.rendition.groupId]);
+    if (this._rendition.groupId) {
+      properties.push(["GROUP-ID", this._rendition.groupId]);
     }
-    if (this.rendition.name) {
-      properties.push(["NAME", this.rendition.name]);
+    if (this._rendition.name) {
+      properties.push(["NAME", this._rendition.name]);
     }
-    if (this.rendition.language) {
-      properties.push(["LANGUAGE", '"' + this.rendition.language + '"']);
+    if (this._rendition.language) {
+      properties.push(["LANGUAGE", '"' + this._rendition.language + '"']);
     }
-    if (this.rendition.assocLanguage) {
+    if (this._rendition.assocLanguage) {
       properties.push([
         "ASSOC-LANGUAGE",
-        '"' + this.rendition.assocLanguage + '"',
+        '"' + this._rendition.assocLanguage + '"',
       ]);
     }
-    if (typeof this.rendition.isDefault != "undefined") {
-      properties.push(["DEFAULT", this.rendition.isDefault ? "YES" : "NO"]);
+    if (typeof this._rendition.isDefault != "undefined") {
+      properties.push(["DEFAULT", this._rendition.isDefault ? "YES" : "NO"]);
     }
-    if (typeof this.rendition.forced != "undefined") {
-      properties.push(["FORCED", this.rendition.forced ? "YES" : "NO"]);
+    if (typeof this._rendition.forced != "undefined") {
+      properties.push(["FORCED", this._rendition.forced ? "YES" : "NO"]);
     }
-    if (typeof this.rendition.autoselect != "undefined") {
-      properties.push(["AUTOSELECT", this.rendition.autoselect ? "YES" : "NO"]);
+    if (typeof this._rendition.autoselect != "undefined") {
+      properties.push([
+        "AUTOSELECT",
+        this._rendition.autoselect ? "YES" : "NO",
+      ]);
     }
-    if (this.rendition.characteristics) {
+    if (this._rendition.characteristics) {
       properties.push([
         "CHARACTERISTICS",
-        '"' + this.rendition.characteristics + '"',
+        '"' + this._rendition.characteristics + '"',
       ]);
     }
-    if (this.rendition.channels) {
-      properties.push(["CHANNELS", '"' + this.rendition.channels + '"']);
+    if (this._rendition.channels) {
+      properties.push(["CHANNELS", '"' + this._rendition.channels + '"']);
     }
-    if (this.rendition.instreamId) {
-      properties.push(["INSTREAM-ID", '"' + this.rendition.instreamId + '"']);
+    if (this._rendition.instreamId) {
+      properties.push(["INSTREAM-ID", '"' + this._rendition.instreamId + '"']);
     }
-    if (this.rendition.uri) {
-      properties.push([
-        "URI",
-        Playlist.buildUrl(
-          this.playlist.getBaseUrl() + this.rendition.uri,
-          this.playlist.getQueryStringParams()
-        ),
-      ]);
+    if (this._rendition.uri) {
+      properties.push(["URI", this.getUri(true)]);
     }
-    out += "#EXT-X-MEDIA:TYPE=" + this.rendition.type + ",";
+    out += "#EXT-X-MEDIA:TYPE=" + this._rendition.type + ",";
     for (let i: number = 0; i < properties.length; i++) {
       if (i > 0) {
         out += ",";

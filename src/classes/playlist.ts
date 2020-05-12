@@ -122,14 +122,14 @@ export class Playlist {
     this._resolutionRange = [min, max];
   }
 
-  public getVideoRenditionUrl(atIndex: number, absolute: boolean = true) {
-    let videoRenditions: Rendition[] = [];
-
-    this._renditions.forEach(function (rendition: Rendition) {
-      if (rendition.getType() == RenditionType.video) {
-        videoRenditions.push(rendition);
-      }
+  public getVideoRenditions(): Rendition[] {
+    return this._renditions.filter((rendition) => {
+      return rendition.getType() == RenditionType.video;
     });
+  }
+
+  public getVideoRenditionUrl(atIndex: number, absolute: boolean = true) {
+    const videoRenditions = this.getVideoRenditions();
 
     if (!(atIndex in videoRenditions)) {
       throw `Video Rendition not found at index ${atIndex}`;
@@ -137,14 +137,7 @@ export class Playlist {
 
     const rendition: Rendition = videoRenditions[atIndex];
 
-    if (!absolute) {
-      return rendition.getUri();
-    }
-
-    return Playlist.buildUrl(
-      this.getBaseUrl() + rendition.getUri(),
-      this.getQueryStringParams()
-    );
+    return rendition.getUri(absolute);
   }
 
   public sortByBandwidth(
