@@ -36,7 +36,7 @@ export class Segment {
   public toString(): string {
     let out: string = "";
     out += this._segmentInfo.toString();
-    out += this._chunklist.getBaseUrl() + this._segment.uri + "\n";
+    out += this._chunklist.baseUrl + this._segment.uri + "\n";
     return out;
   }
 }

@@ -8,7 +8,6 @@ export enum RenditionType {
   "audio",
   "iframe",
 }
-
 export class Rendition {
   protected _variant: HLS.types.Variant;
   protected _streamInfo: StreamInfo;
@@ -18,17 +17,19 @@ export class Rendition {
     return this._variant;
   }
 
-  constructor(playlist: Playlist, variant: HLS.types.Variant) {
-    this._variant = variant;
-    this._streamInfo = new StreamInfo(playlist, variant);
-    this._playlist = playlist;
+  public get playlist(): Playlist {
+    return this._playlist;
   }
 
-  public getTracks(): AudioTrack[] {
+  public get streamInfo(): StreamInfo {
+    return this._streamInfo;
+  }
+
+  public get audioTracks(): AudioTrack[] {
     return this._streamInfo.getTracks();
   }
 
-  public getType(): RenditionType {
+  public get type(): RenditionType {
     if (this.variant.isIFrameOnly) {
       return RenditionType.iframe;
     } else if (this._streamInfo.hasAudio() && !this._streamInfo.hasVideo()) {
@@ -38,23 +39,23 @@ export class Rendition {
     }
   }
 
-  public getHeight(): number {
+  public get height(): number {
     return this.variant.resolution?.height || 0;
   }
 
-  public getFrameRate(): number {
+  public get frameRate(): number {
     return this.variant?.frameRate || 0;
   }
 
-  public getBandwidth(): number {
+  public get bandwidth(): number {
     return this.variant.bandwidth;
   }
 
-  public getAverageBandwidth(): number {
+  public get averageBandwidth(): number {
     return this.variant?.averageBandwidth || 0;
   }
 
-  public getDefaultAudioTrack(): AudioTrack | null {
+  public get defaultAudioTrack(): AudioTrack | null {
     if (this._variant.audio?.length === 0) {
       return null;
     }
@@ -67,33 +68,38 @@ export class Rendition {
     );
   }
 
-  public getUri(absolute: boolean = false): string {
-    if (absolute) {
-      return Playlist.buildUrl(
-        this._playlist.getBaseUrl() + this.variant.uri,
-        this._playlist.getQueryStringParams()
-      );
-    }
+  public get uri(): string {
     return this.variant.uri;
   }
 
+  public get absoluteUri(): string {
+    return Playlist.buildUrl(
+      this._playlist.getBaseUrl() + this.variant.uri,
+      this._playlist.getQueryStringParams()
+    );
+  }
+
+  constructor(playlist: Playlist, variant: HLS.types.Variant) {
+    this._variant = variant;
+    this._streamInfo = new StreamInfo(playlist, variant);
+    this._playlist = playlist;
+  }
+
   public isResolutionBetween(range: [number, number]): boolean {
-    const height: number = this.getHeight();
     return (
-      typeof height == "undefined" || (height >= range[0] && height <= range[1])
+      this.height == 0 || (this.height >= range[0] && this.height <= range[1])
     );
   }
 
   public isFrameRateBetween(range: [number, number]): boolean {
-    const frameRate: number = this.getFrameRate();
     return (
-      typeof frameRate == "undefined" ||
-      (frameRate >= range[0] && frameRate <= range[1])
+      this.frameRate == 0 ||
+      (this.frameRate >= range[0] && this.frameRate <= range[1])
     );
   }
 
   public isBandwidthBetween(range: [number, number]): boolean {
-    const bandwidth: number = this.getBandwidth() || this.getAverageBandwidth();
+    const bandwidth: number = this.bandwidth || this.averageBandwidth;
     return (
       typeof bandwidth == "undefined" ||
       (bandwidth >= range[0] && bandwidth <= range[1])
@@ -116,7 +122,7 @@ export class Rendition {
         Playlist.buildUrl(this._playlist.getDynamicChunklistEndpoint(), props) +
         "\n";
     } else {
-      out += this.getUri(true) + "\n";
+      out += this.absoluteUri + "\n";
     }
 
     return out;

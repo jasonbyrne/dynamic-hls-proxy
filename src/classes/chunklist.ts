@@ -31,6 +31,18 @@ export class Chunklist {
     return this._url;
   }
 
+  public get pruneType(): ChunklistPruneType {
+    return this._pruneType;
+  }
+
+  public get maxDuration(): number {
+    return this._maxDuration;
+  }
+
+  public get baseUrl(): string {
+    return this._baseUrl;
+  }
+
   protected constructor(body: string) {
     let m3u8: HLS.types.Playlist = HLS.parse(body);
     if (m3u8.isMasterPlaylist) {
@@ -66,26 +78,14 @@ export class Chunklist {
     return this;
   }
 
-  public getPruneType(): ChunklistPruneType {
-    return this._pruneType;
-  }
-
   public setMaxDuration(maxDuration: number): Chunklist {
     this._maxDuration = maxDuration;
     return this;
   }
 
-  public getMaxDuration(): number {
-    return this._maxDuration;
-  }
-
   public setBaseUrl(baseUrl: string): Chunklist {
     this._baseUrl = baseUrl;
     return this;
-  }
-
-  public getBaseUrl(): string {
-    return this._baseUrl;
   }
 
   public toString(): string {

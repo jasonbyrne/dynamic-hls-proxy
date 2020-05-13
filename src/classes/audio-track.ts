@@ -5,20 +5,15 @@ export class AudioTrack {
   protected _rendition: HLS.types.Rendition<"AUDIO">;
   protected _playlist: Playlist;
 
-  constructor(playlist: Playlist, rendition: HLS.types.Rendition<"AUDIO">) {
-    this._rendition = rendition;
-    this._playlist = playlist;
-  }
-
-  public getType(): string {
+  public get type(): string {
     return this._rendition.type;
   }
 
-  public isAudio(): boolean {
+  public get isAudio(): boolean {
     return this._rendition.type === "AUDIO";
   }
 
-  public getUniqueKey(): string {
+  public get uniqueKey(): string {
     return (
       this._rendition.groupId +
       " " +
@@ -28,17 +23,26 @@ export class AudioTrack {
     );
   }
 
-  public getUri(absolute: boolean = false): string | null {
+  public uri(): string | null {
     if (!this._rendition.uri) {
       return null;
     }
-    if (absolute) {
-      return Playlist.buildUrl(
-        this._playlist.getBaseUrl() + this._rendition.uri,
-        this._playlist.getQueryStringParams()
-      );
-    }
     return this._rendition.uri;
+  }
+
+  public absoluteUri(): string | null {
+    const uri = this.uri;
+    return uri === null
+      ? null
+      : Playlist.buildUrl(
+          this._playlist.getBaseUrl() + uri,
+          this._playlist.getQueryStringParams()
+        );
+  }
+
+  constructor(playlist: Playlist, rendition: HLS.types.Rendition<"AUDIO">) {
+    this._rendition = rendition;
+    this._playlist = playlist;
   }
 
   public toString(): string {
@@ -84,7 +88,7 @@ export class AudioTrack {
       properties.push(["INSTREAM-ID", '"' + this._rendition.instreamId + '"']);
     }
     if (this._rendition.uri) {
-      properties.push(["URI", this.getUri(true)]);
+      properties.push(["URI", this.absoluteUri]);
     }
     out += "#EXT-X-MEDIA:TYPE=" + this._rendition.type + ",";
     for (let i: number = 0; i < properties.length; i++) {

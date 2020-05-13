@@ -72,6 +72,12 @@ export class Playlist {
     return this._url;
   }
 
+  public get videoRenditions(): Rendition[] {
+    return this._renditions.filter((rendition) => {
+      return rendition.type == RenditionType.video;
+    });
+  }
+
   protected constructor(body: string) {
     const m3u8: HLS.types.Playlist = HLS.parse(body);
     if (!m3u8.isMasterPlaylist) {
@@ -101,6 +107,13 @@ export class Playlist {
     });
   }
 
+  public getVideoRenditionUrl(atIndex: number, absolute: boolean = true) {
+    if (atIndex >= this.videoRenditions.length) {
+      throw `Video Rendition not found at index ${atIndex}`;
+    }
+    return this.videoRenditions[atIndex].absoluteUri;
+  }
+
   public setFrameRateRange(min: number, max: number) {
     if (min > max) {
       throw "Minimum frame rate can not be greater than maximum frame rate";
@@ -122,24 +135,6 @@ export class Playlist {
     this._resolutionRange = [min, max];
   }
 
-  public getVideoRenditions(): Rendition[] {
-    return this._renditions.filter((rendition) => {
-      return rendition.getType() == RenditionType.video;
-    });
-  }
-
-  public getVideoRenditionUrl(atIndex: number, absolute: boolean = true) {
-    const videoRenditions = this.getVideoRenditions();
-
-    if (!(atIndex in videoRenditions)) {
-      throw `Video Rendition not found at index ${atIndex}`;
-    }
-
-    const rendition: Rendition = videoRenditions[atIndex];
-
-    return rendition.getUri(absolute);
-  }
-
   public sortByBandwidth(
     order: RenditionSortOrder = RenditionSortOrder.bestFirst
   ): Playlist {
@@ -154,14 +149,14 @@ export class Playlist {
       this._renditions.forEach(function (rendition: Rendition) {
         // Get only the video renditions and sort them by bandwidth
         if (
-          rendition.getType() == RenditionType.video &&
+          rendition.type == RenditionType.video &&
           rendition.isBandwidthBetween(playlist._bandwidthRange) &&
           rendition.isFrameRateBetween(playlist._frameRateRange) &&
           rendition.isResolutionBetween(playlist._resolutionRange) &&
           (order != RenditionSortOrder.nonHdFirst ||
-            rendition.getHeight() < HD_MIN_HEIGHT)
+            rendition.height < HD_MIN_HEIGHT)
         ) {
-          videoBandwidths.push(rendition.getBandwidth());
+          videoBandwidths.push(rendition.bandwidth);
         }
         videoBandwidths.sort((a, b) => b - a);
         if (order == RenditionSortOrder.middleFirst) {
@@ -179,14 +174,14 @@ export class Playlist {
       a: Rendition,
       b: Rendition
     ) {
-      if (a.getBandwidth() == middleBandwidth) {
+      if (a.bandwidth == middleBandwidth) {
         return -1000000000;
-      } else if (b.getBandwidth() == middleBandwidth) {
+      } else if (b.bandwidth == middleBandwidth) {
         return 1000000000;
       } else {
         return order == RenditionSortOrder.worstFirst
-          ? a.getBandwidth() - b.getBandwidth()
-          : b.getBandwidth() - a.getBandwidth();
+          ? a.bandwidth - b.bandwidth
+          : b.bandwidth - a.bandwidth;
       }
     });
     return this;
@@ -274,7 +269,7 @@ export class Playlist {
     const audioTracks: { [key: string]: AudioTrack } = {};
     // Write out the variants
     this._renditions.forEach((rendition) => {
-      if (rendition.getType() == RenditionType.video) {
+      if (rendition.type == RenditionType.video) {
         if (
           (this._limit < 1 || videoRenditions.length < this._limit) &&
           rendition.isBandwidthBetween(this._bandwidthRange) &&
@@ -282,17 +277,17 @@ export class Playlist {
           rendition.isResolutionBetween(this._resolutionRange)
         ) {
           videoRenditions.push(rendition);
-          rendition.getTracks().forEach((track: AudioTrack) => {
-            if (!track.isAudio() || this.includeAudioWithVideo) {
-              audioTracks[track.getUniqueKey()] = track;
+          rendition.audioTracks.forEach((track: AudioTrack) => {
+            if (!track.isAudio || this.includeAudioWithVideo) {
+              audioTracks[track.uniqueKey] = track;
             }
           });
         }
-      } else if (rendition.getType() == RenditionType.iframe) {
+      } else if (rendition.type == RenditionType.iframe) {
         if (this._limit < 1 || iframeRenditions.length < this._limit) {
           iframeRenditions.push(rendition);
         }
-      } else if (rendition.getType() == RenditionType.audio) {
+      } else if (rendition.type == RenditionType.audio) {
         if (this._limit < 1 || audioRenditions.length < this._limit) {
           audioRenditions.push(rendition);
         }
