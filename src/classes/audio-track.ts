@@ -23,14 +23,14 @@ export class AudioTrack {
     );
   }
 
-  public uri(): string | null {
+  public get uri(): string | null {
     if (!this._rendition.uri) {
       return null;
     }
     return this._rendition.uri;
   }
 
-  public absoluteUri(): string | null {
+  public get absoluteUri(): string | null {
     const uri = this.uri;
     return uri === null
       ? null
